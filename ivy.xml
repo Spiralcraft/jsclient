@@ -5,6 +5,8 @@
   
   <publications>
     <artifact name="spiralcraft" type="js" ext="js"/>
+    <artifact name="spiralcraft-jquery" type="js" ext="js"/>
+    <artifact name="spiralcraft-jsclient" type="tgl" ext="tgl"/>
   </publications> 
     
   <dependencies>   

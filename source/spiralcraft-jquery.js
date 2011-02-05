@@ -26,7 +26,7 @@ var SPIRALCRAFT = (function (my) {
 SPIRALCRAFT.ajax = (function (my) { 
   
   my.get = (function(location,callback) {
-    $.get(location,callback);
+    jQuery.get(location,callback);
   });    
       
 

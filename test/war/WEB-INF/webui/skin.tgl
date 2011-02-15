@@ -1,0 +1,27 @@
+<%@namespace
+  webuic="class:/spiralcraft/servlet/webui/components/"
+  task="class:/spiralcraft/task/"
+  servlet="class:/javax/servlet/http/"
+  j="class:/java/lang/"
+  html="class:/spiralcraft/servlet/webui/components/html/"
+  %> 
+<html>
+  <head>
+    <script type="text/javascript" src="/jsclient/spiralcraft.js">
+    </script>
+    <%@include resource="context://files/source/spiralcraft-jsclient.tgl"/%>
+  </head>
+  <body>
+  
+    <!-- skin main insert -->
+    
+    
+    <%@insert/%>
+    
+    
+    <!-- / skin main insert -->
+    
+    
+  </body>
+</html>
+<%/@namespace%>

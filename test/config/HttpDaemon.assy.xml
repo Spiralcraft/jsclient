@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="WINDOWS-1252"?>
+<service:Daemon 
+  xmlns:service="class:/spiralcraft/service" 
+  xmlns:httpd="class:/spiralcraft/pioneer/httpd" 
+  xmlns:net="class:/spiralcraft/pioneer/net"
+  xmlns:config="../config/"
+  >
+
+  <services>
+  
+    <httpd:HttpService>
+ 
+      <listeners>
+        <net:Listener>
+
+          <port>8080
+          </port>
+
+        </net:Listener>
+      </listeners>
+      
+      <handlerQueue.initialThreadCount>10
+      </handlerQueue.initialThreadCount>
+      
+      <handlerQueue.highWaterThreadCount>20
+      </handlerQueue.highWaterThreadCount>
+      
+      <serviceContext>
+      
+        <config:Context>
+        
+          <documentRoot>${spiralcraft.builder.dir}/../war
+          </documentRoot>
+          
+          <accessLog>
+            <httpd:RotatingFileAccessLog>
+              <fileSequence.directory>${spiralcraft.builder.dir}/../log
+              </fileSequence.directory>
+            </httpd:RotatingFileAccessLog>
+          </accessLog>
+          
+          <debug>false
+          </debug>
+
+        </config:Context>
+        
+        
+        
+      </serviceContext>
+      
+    </httpd:HttpService>
+  </services>
+</service:Daemon>
+    

@@ -1,0 +1,22 @@
+<vfsc:FileSpace
+  xmlns:vfsc="class:/spiralcraft/vfs/context/"
+  >
+  <authorities>      
+  
+    <vfsc:Authority>
+     
+      <debugLevel>INFO
+      </debugLevel>
+      
+      <grafts>
+        <vfsc:Redirect>
+          <virtualURI>jsclient/
+          </virtualURI>
+          <newBaseURI>context://files/source/
+          </newBaseURI>
+        </vfsc:Redirect>
+      </grafts>
+    </vfsc:Authority>
+    
+  </authorities>
+</vfsc:FileSpace>

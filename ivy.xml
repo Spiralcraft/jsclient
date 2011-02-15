@@ -3,6 +3,11 @@
   <info organisation="spiralcraft" module="jsclient">
   </info> 
   
+  <configurations>
+    <conf name="libs"/>
+    <conf name="test"/>
+  </configurations>
+  
   <publications>
     <artifact name="spiralcraft" type="js" ext="js"/>
     <artifact name="spiralcraft-jquery" type="js" ext="js"/>
@@ -10,6 +15,8 @@
   </publications> 
     
   <dependencies>   
+    <dependency org="spiralcraft"  name="launcher"  rev="[0.4.12,)" conf="test->*"/>
+    <dependency org="spiralcraft"  name="pioneer"  rev="[0.4.12,)" conf="test->*"/>
     <conflict manager="latest-compatible"/>
   </dependencies>
 

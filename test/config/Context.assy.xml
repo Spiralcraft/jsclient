@@ -1,0 +1,87 @@
+<httpd:MultiAliasHttpServiceContext
+  xmlns:httpd="class:/spiralcraft/pioneer/httpd/"
+  xmlns:autofilter="class:/spiralcraft/servlet/autofilter/"
+  >
+                  
+  <maxSessionInactiveInterval>120
+  </maxSessionInactiveInterval>
+      
+  <debug>false
+  </debug>
+  
+  <filterMappings>
+    <httpd:FilterMapping>
+      <filterName>controller
+      </filterName>
+    
+      <URLPattern>*
+      </URLPattern>
+    </httpd:FilterMapping>
+  </filterMappings>
+  
+  <filters>
+    <httpd:FilterHolder>
+      <filterName>controller
+      </filterName>
+      
+      <filterInstance>
+        <autofilter:Controller>
+          <configURI>../config/
+          </configURI>
+          <filesURI>../..
+          </filesURI>          
+        </autofilter:Controller>
+      </filterInstance>
+      
+    </httpd:FilterHolder>
+  </filters>
+  
+  <servletMappings>
+
+    <httpd:ServletMapping>
+       
+      <servletName>file
+      </servletName>
+        
+      <URLPatterns>/
+      </URLPatterns>
+        
+    </httpd:ServletMapping>
+
+    <httpd:ServletMapping>
+       
+      <servletName>webui
+      </servletName>
+        
+      <URLPatterns>*.webui
+      </URLPatterns>
+        
+    </httpd:ServletMapping>
+
+  </servletMappings>
+                    
+  <servletHolders>
+                        
+    <httpd:ServletHolder>
+                         
+      <servletName>file
+      </servletName>
+         
+      <servletClass>spiralcraft.servlet.vfs.FileServlet
+      </servletClass>
+      
+                           
+    </httpd:ServletHolder>
+                        
+    <httpd:ServletHolder>
+            
+      <servletName>webui
+      </servletName>
+            
+      <servletClass>spiralcraft.servlet.webui.UIServlet
+      </servletClass>
+            
+    </httpd:ServletHolder>
+    
+  </servletHolders>
+</httpd:MultiAliasHttpServiceContext>

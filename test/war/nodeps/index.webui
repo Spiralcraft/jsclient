@@ -1,0 +1,6 @@
+<%@include resource="context:/WEB-INF/webui/skin.tgl"
+  %>
+  <script type="text/javascript">
+    window.onload=function () { SPIRALCRAFT.webui.sessionSync(true); };
+  </script>
+<%/@include%>

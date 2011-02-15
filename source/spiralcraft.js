@@ -1,5 +1,5 @@
 //
-//Copyright (c) 2010 Michael Toth
+//Copyright (c) 2010,2011 Michael Toth
 //Spiralcraft Inc., All Rights Reserved
 //
 //This package is part of the Spiralcraft project and is licensed under
@@ -44,6 +44,150 @@ var SPIRALCRAFT = (function (my) {
            
   return my; 
 }(SPIRALCRAFT || {}));
+
+
+SPIRALCRAFT.http = (function(my) {
+  
+  var _factories = [
+    function() { return new XMLHttpRequest(); },
+    function() { return new ActiveXObject("Msxml2.XMLHTTP"); },
+    function() { return new ActiveXObject("Microsoft.XMLHTTP"); }
+  ];
+
+  var _factory = null;
+
+  // Create a new request
+  var _newXmlHttpRequest = function() {
+    if (_factory != null) return _factory();
+
+    for(var i = 0; i < _factories.length; i++) {
+      try {
+        var factory = _factories[i];
+        var request = factory();
+        if (request != null) {
+          _factory = factory;
+          return request;
+        }
+      }
+      catch(e) {
+        continue;
+      }
+    }
+
+    // If we get here, none of the factory candidates succeeded,
+    // so throw an exception now and for all future calls.
+    _factory = function() {
+      throw new Error("XMLHttpRequest not supported");
+    }
+    _factory(); // Throw an error
+  };
+  
+  
+  my.get = function(location,options) {
+    
+    if (options.method == null)
+    { options.method = "GET";
+    }
+    
+    var _request=_newXmlHttpRequest();
+    
+    var _callbacks = [
+      options.onOpen, 
+      options.onSend,
+      options.onReceive, 
+      function () {
+        if (_request.status >= 200 && _request.status < 300) {
+          options.onSuccess(_request);
+        }
+        if (options.onComplete) { 
+          options.onComplete(_request); 
+        }
+      }
+    ];
+    
+    
+    _request.onreadystatechange = function () {
+      if (options.onReadyStateChange) {
+        options.onReadyStateChange(_request);
+      }
+    
+      if (_callbacks[_request.readyState-1]) {
+        _callbacks[_request.readyState-1](_request);
+      }
+    };
+    
+    _request.open(options.method,location);
+    _request.send(options.data);
+  };
+  
+  
+  my.parseHeaders = function(request) {
+    var headerText = request.getAllResponseHeaders();  // Text from the server
+    var headers = {}; // This will be our return value
+    var ls = /^\s*/;  // Leading space regular expression
+    var ts = /\s*$/;  // Trailing space regular expression
+
+    // Break the headers into lines
+    var lines = headerText.split("\n");
+    // Loop through the lines
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (line.length == 0) continue;  // Skip empty lines
+      // Split each line at first colon, and trim whitespace away
+      var pos = line.indexOf(':');
+      var name = line.substring(0, pos).replace(ls, "").replace(ts, "");
+      var value = line.substring(pos+1).replace(ls, "").replace(ts, "");
+      // Store the header name/value pair in a JavaScript object
+      headers[name] = value;
+    }
+    return headers;
+  };
+  
+  /**
+   * Encode the property name/value pairs of an object as if they were from
+   * an HTML form, using application/x-www-form-urlencoded format
+   */
+  my.encodeFormData = function(data) {
+    var pairs = [];
+    var regexp = /%20/g; // A regular expression to match an encoded space
+
+    for(var name in data) {
+      var value = data[name].toString();
+      // Create a name/value pair, but encode name and value first
+      // The global function encodeURIComponent does almost what we want,
+      // but it encodes spaces as %20 instead of as "+". We have to
+      // fix that with String.replace()
+      var pair = encodeURIComponent(name).replace(regexp,"+") + '=' +
+        encodeURIComponent(value).replace(regexp,"+");
+      pairs.push(pair);
+    }
+
+    // Concatenate all the name/value pairs, separating them with &
+    return pairs.join('&');
+  };
+  
+  return my;
+  
+}(SPIRALCRAFT.http || {}));
+
+
+SPIRALCRAFT.ajax = (function (my) { 
+  
+  my.get = function(location,callback) {
+    SPIRALCRAFT.http.get(
+      location,
+      { 
+        onSuccess: function(request) { 
+          callback(request.responseText); 
+        }
+      }
+    );
+  };
+
+  
+  return my; 
+}(SPIRALCRAFT.ajax || {}));
+
 
 
 SPIRALCRAFT.uri = (function(my) {
@@ -111,13 +255,10 @@ SPIRALCRAFT.webui = (function(my) {
   my.sessionSync = (function(on) {
   
     
-    if (on)
-    {
+    if (on) {
       _sessionSyncCount++;
       my.checkSession();
-    }
-    else
-    {
+    } else {
       if (_sessionSyncCount>0) { 
         _sessionSyncCount--;
         if (_sessionSyncCount==0 && my.timeoutRef!=null)  { 

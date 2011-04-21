@@ -1,9 +1,11 @@
-<project name="spiralcraft-jsclient" default="copy-source" basedir=".">
+<project name="spiralcraft-jsclient" default="pack" basedir=".">
 
 	
   <property name="module" value="jsclient"/>
-  <property name="buildVersion" value="0.4.13"/>
-	
+  <property name="buildVersion" value="0.4.14-dev1"/>
+
   <import file="../../build/build-spiralcraft-common.xml"/>
 	
+
+
 </project>

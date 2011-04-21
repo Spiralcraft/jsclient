@@ -9,14 +9,12 @@
   </configurations>
   
   <publications>
-    <artifact name="spiralcraft" type="js" ext="js"/>
-    <artifact name="spiralcraft-jquery" type="js" ext="js"/>
-    <artifact name="spiralcraft-jsclient" type="tgl" ext="tgl"/>
+    <artifact name="spiralcraft-jsclient" type="package" ext="zip"/>
   </publications> 
     
   <dependencies>   
-    <dependency org="spiralcraft"  name="launcher"  rev="[0.4.12,)" conf="test->*"/>
-    <dependency org="spiralcraft"  name="pioneer"  rev="[0.4.12,)" conf="test->*"/>
+    <dependency org="spiralcraft"  name="launcher"  rev="[0.4.14-dev1,)" conf="test->*"/>
+    <dependency org="spiralcraft"  name="pioneer"  rev="[0.4.14-dev1,)" conf="test->*"/>
     <conflict manager="latest-compatible"/>
   </dependencies>
 

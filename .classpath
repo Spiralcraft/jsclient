@@ -2,5 +2,4 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/spiralcraft.jar"/>
-	<classpathentry kind="output" path="bin"/>
 </classpath>

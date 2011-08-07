@@ -13,6 +13,16 @@
 //"AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
 //
 
+//Portions adapted from:
+//
+//JavaScript: The Definitive Guide by David Flanagan
+//Copyright © 1997-2000, O'Reilly & Associates
+//
+//"These programs come with no warranty of any sort. They are copyrighted 
+//material and are not in the public domain. As long as you retain the 
+//copyright notice, however, you may study, use, modify, and distribute them 
+//for any purpose."
+
 /*
  * Spiralcraft Common Javascript Library 
  *
@@ -189,7 +199,9 @@ SPIRALCRAFT.ajax = (function (my) {
 }(SPIRALCRAFT.ajax || {}));
 
 
-
+/*
+ * Function for manipulating URIs
+ */
 SPIRALCRAFT.uri = (function(my) {
 
   my.addQueryTerm = (function(uri,name,value) {
@@ -275,6 +287,88 @@ SPIRALCRAFT.webui = (function(my) {
   
   return my;
 }(SPIRALCRAFT.webui || {}));
+
+
+/*
+ * Functions for interacting with Spiralcraft security subsystem
+ */
+SPIRALCRAFT.security = (function(my) {
+  
+  my.realmName = "";
+  
+  my.realmDigest = (function(challenge,username,clearpass) {
+    return SPIRALCRAFT.SHA25.digestUTF8(
+        SPIRALCRAFT.UTF8.decode(
+            challenge+realmName+username.toLowerCase()+clearpass
+        )
+      );
+  });
+
+  my.processLoginControls =  
+    (function(challengeInput,usernameInput,clearpassInput,digestpassInput) {
+      
+      digestpassInput.value = 
+        realmDigest(
+          challengeInput.value,
+          usernameInput.value,
+          clearpassInput.value
+        );
+      
+      console.log(
+        challengeInput.value+","+
+        usernameInput.value+","+
+        clearpassInput.value+" = "+
+        digestpassInput.value
+      );
+        
+      return true;
+        
+  });
+
+  my.loginFormOnSubmit =  
+    (function(loginForm) {
+      processLoginControls(
+        loginForm.login_challenge,
+        loginForm.login_username,
+        loginForm.login_clearpass,
+        loginForm.login_digestpass
+        );
+      return true;
+  });
+  
+  my.processRegistrationControls =  
+    (function(usernameInput,clearpassInput,digestpassInput) {
+      
+      digestpassInput.value = 
+        realmDigest(
+          "",
+          usernameInput.value,
+          clearpassInput.value
+        );
+      
+      console.log(
+        usernameInput.value+","+
+        clearpassInput.value+" = "+
+        digestpassInput.value
+      );
+        
+      return true;
+        
+  });
+
+  my.registrationFormOnSubmit =  
+    (function(registrationForm) {
+      processRegistrationControlsControls(
+        registrationForm.register_username,
+        registrationForm.register_clearpass,
+        registrationForm.register_digestpass
+        );
+      return true;
+  });
+  
+  return my;
+}(SPIRALCRAFT.security || {}));
+
 
 /*
  * SHA256 digester

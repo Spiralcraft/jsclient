@@ -1,6 +1,7 @@
 <!-- webui client config -->
 <script type="text/javascript">
 SPIRALCRAFT.webui.syncLocation="<%=[:class:/spiralcraft/servlet/webui/ServiceContext].asyncURL/%>";
-SPIRALCRAFT.webui.sessionExpiration=<%=([:class:/javax/servlet/http/HttpSession].maxInactiveInterval*1000)/%>;
+SPIRALCRAFT.webui.sessionExpiration=<%=[:class:/javax/servlet/http/HttpSession].maxInactiveInterval*1000/%>;
+SPIRALCRAFT.security.realmName="<%=[:class:/spiralcraft/security/auth/AuthSession].realmName/%>";
 </script>
 <!-- /webui client config -->

@@ -297,9 +297,9 @@ SPIRALCRAFT.security = (function(my) {
   my.realmName = "";
   
   my.realmDigest = (function(challenge,username,clearpass) {
-    return SPIRALCRAFT.SHA25.digestUTF8(
+    return SPIRALCRAFT.SHA256.digestUTF8(
         SPIRALCRAFT.UTF8.decode(
-            challenge+realmName+username.toLowerCase()+clearpass
+            challenge+this.realmName+username.toLowerCase()+clearpass
         )
       );
   });
@@ -308,14 +308,16 @@ SPIRALCRAFT.security = (function(my) {
     (function(challengeInput,usernameInput,clearpassInput,digestpassInput) {
       
       digestpassInput.value = 
-        realmDigest(
-          challengeInput.value,
+        this.realmDigest(
+          challengeInput!=null?challengeInput.value:"",
           usernameInput.value,
           clearpassInput.value
         );
       
+      clearpassInput.value="";
+      
       console.log(
-        challengeInput.value+","+
+        (challengeInput!=null?challengeInput.value:"")+","+
         usernameInput.value+","+
         clearpassInput.value+" = "+
         digestpassInput.value
@@ -327,7 +329,7 @@ SPIRALCRAFT.security = (function(my) {
 
   my.loginFormOnSubmit =  
     (function(loginForm) {
-      processLoginControls(
+      this.processLoginControls(
         loginForm.login_challenge,
         loginForm.login_username,
         loginForm.login_clearpass,
@@ -340,7 +342,7 @@ SPIRALCRAFT.security = (function(my) {
     (function(usernameInput,clearpassInput,digestpassInput) {
       
       digestpassInput.value = 
-        realmDigest(
+        this.realmDigest(
           "",
           usernameInput.value,
           clearpassInput.value
@@ -358,7 +360,7 @@ SPIRALCRAFT.security = (function(my) {
 
   my.registrationFormOnSubmit =  
     (function(registrationForm) {
-      processRegistrationControlsControls(
+      this.processRegistrationControls(
         registrationForm.register_username,
         registrationForm.register_clearpass,
         registrationForm.register_digestpass

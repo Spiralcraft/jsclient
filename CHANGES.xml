@@ -1,0 +1,42 @@
+<scm:Change.list
+  xmlns:scm="class:/spiralcraft/scm/meta/"
+  >
+  <scm:Change>
+    <revision>0.4.15
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <detail>
+      <scm:Change>
+      
+        <revision>-dev1
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Integrate javascript security functions
+          </scm:Note>
+        
+        </notes>
+        
+        <path>package
+        </path>
+        
+        <resources>
+          <URI>war-js/spiralcraft.js
+          </URI>
+          <URI>war-webui/spiralcraft-jsclient.tgl
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+    </detail>
+  </scm:Change> 
+  
+</scm:Change.list>

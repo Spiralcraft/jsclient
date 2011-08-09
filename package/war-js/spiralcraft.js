@@ -339,7 +339,14 @@ SPIRALCRAFT.security = (function(my) {
   });
   
   my.processRegistrationControls =  
-    (function(usernameInput,clearpassInput,digestpassInput) {
+    (function(
+      usernameInput,
+      clearpassInput,
+      digestpassInput,
+      clearpassInputCheck,
+      digestpassInputCheck,
+      passwordLengthInput
+      ) {
       
       digestpassInput.value = 
         this.realmDigest(
@@ -347,6 +354,22 @@ SPIRALCRAFT.security = (function(my) {
           usernameInput.value,
           clearpassInput.value
         );
+      
+      passwordLengthInput.value=clearpassInput.value.length;
+      clearpassInput.value="";
+      
+      if (digestpassInputCheck)
+      {
+        digestpassInputCheck.value = 
+          this.realmDigest(
+            "",
+            usernameInput.value,
+            clearpassInputCheck.value
+          );
+        
+        clearpassInputCheck.value="";
+        
+      }
       
       console.log(
         usernameInput.value+","+
@@ -363,7 +386,10 @@ SPIRALCRAFT.security = (function(my) {
       this.processRegistrationControls(
         registrationForm.register_username,
         registrationForm.register_clearpass,
-        registrationForm.register_digestpass
+        registrationForm.register_digestpass,
+        registrationForm.register_clearpass_check,
+        registrationForm.register_digestpass_check,
+        registrationForm.register_passwordlength
         );
       return true;
   });

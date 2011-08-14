@@ -2,6 +2,43 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.15.1
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <detail>
+      <scm:Change>
+      
+        <revision>-dev1
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Added cross-browser DOM hooks for body.onload and 
+            window.resize
+          </scm:Note>
+        
+        </notes>
+        
+        <path>package
+        </path>
+        
+        <resources>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+    </detail>
+  </scm:Change> 
+
+  <scm:Change>
     <revision>0.4.15
     </revision>
 

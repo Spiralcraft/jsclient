@@ -35,10 +35,13 @@ var SPIRALCRAFT = (function (my) {
   var _debug = true;
 
   if(window.console){  
-    var consoleBackUp = window.console.log;  
+    var consoleBackUp = window.console.log;
+    window.console.log("Replacing window.console.log()");
+    consoleBackUp("Writing to consoleBackUp");
+    
     window.console.log = function(str){  
       if(_debug){  
-        consoleBackUp.call(this,str);  
+        consoleBackUp(str);  
       }  
     }  
   }else{  
@@ -55,7 +58,62 @@ var SPIRALCRAFT = (function (my) {
   return my; 
 }(SPIRALCRAFT || {}));
 
+/*
+ * DOM functions and event handlers
+ */
+SPIRALCRAFT.dom = (function(my) {
+  
+  my.bodyOnLoad = function() {
+    window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
+    
+  };
+  
+  my.registerBodyOnLoad = function(fn) {
+    var lastFn = my.bodyOnLoad;
+    my.bodyOnLoad = function() { 
+      lastFn();
+      fn();
+    };
+  };
 
+  my.windowOnResize = function(event) {
+    window.console.log("SPIRALCRAFT.dom.windowOnResize(): "+event);
+    
+  };
+  
+  if (window.addEventListener) { 
+    window.addEventListener(
+      "resize",
+      function(event) { 
+        my.windowOnResize(event);
+      },
+      false
+    );
+  }
+  else if (window.attachEvent) {
+    window.attachEvent(
+        "onresize",
+        function() { 
+          my.windowOnResize(null);
+        }
+      );
+  }
+  
+  my.registerWindowOnResize = function(fn) {
+    var lastFn = my.windowOnResize;
+    my.windowOnResize = function() { 
+      lastFn();
+      fn();
+    };
+  };
+  
+  return my;
+}(SPIRALCRAFT.dom || {}));
+
+
+/*
+ * HTTP related functionality 
+ */
 SPIRALCRAFT.http = (function(my) {
   
   var _factories = [
@@ -217,6 +275,7 @@ SPIRALCRAFT.uri = (function(my) {
 
   return my;
 }(SPIRALCRAFT.uri || {}));
+
 
 /*
  * Spiralcraft webui related functions

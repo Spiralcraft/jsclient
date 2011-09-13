@@ -36,8 +36,8 @@ var SPIRALCRAFT = (function (my) {
 
   if(window.console){  
     var consoleBackUp = window.console.log;
-    window.console.log("Replacing window.console.log()");
-    consoleBackUp("Writing to consoleBackUp");
+    // window.console.log("Replacing window.console.log()");
+    // consoleBackUp("Writing to consoleBackUp");
     
     window.console.log = function(str){  
       if(_debug){  
@@ -64,7 +64,7 @@ var SPIRALCRAFT = (function (my) {
 SPIRALCRAFT.dom = (function(my) {
   
   my.bodyOnLoad = function() {
-    window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
+    // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
     
   };
   
@@ -77,7 +77,7 @@ SPIRALCRAFT.dom = (function(my) {
   };
 
   my.windowOnResize = function(event) {
-    window.console.log("SPIRALCRAFT.dom.windowOnResize(): "+event);
+    // window.console.log("SPIRALCRAFT.dom.windowOnResize(): "+event);
     
   };
   

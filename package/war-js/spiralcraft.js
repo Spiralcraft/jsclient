@@ -35,13 +35,22 @@ var SPIRALCRAFT = (function (my) {
   var _debug = true;
 
   if(window.console){  
-    var consoleBackUp = window.console.log;
+    var consoleBackup = window.console.log;
+    if (!consoleBackup)
+    { consoleBackup=console.log;
+    }
     // window.console.log("Replacing window.console.log()");
     // consoleBackUp("Writing to consoleBackUp");
     
     window.console.log = function(str){  
       if(_debug){  
-        consoleBackUp(str);  
+        try
+        { consoleBackup.apply(window.console,[str]);  
+        }
+        catch (err)
+        {
+          alert(err);
+        }
       }  
     }  
   }else{  
@@ -462,39 +471,10 @@ SPIRALCRAFT.security = (function(my) {
  */
 SPIRALCRAFT.SHA256 = (function(my) {
 
-  //SHA-256 : MIT License: Credit- antimatter15.com : UTF8-encode input
   my.digestUTF8 = (function (b) {
     
-    function h(j,k){
-      return(j>>e)+(k>>e)+((p=(j&o)+(k&o))>>e)<<e|p&o
-    }
-    
-    function f(j,k){
-      return j>>>k|j<<32-k
-    }
-    
-    var g=[],d,c=3,l=[2],p,i,q,a,m=[],n=[];i=b.length*8;
-    for(var e=16,o=65535,r="";c<312;c++){
-      for(d=l.length;d--&&c%l[d]!=0;);
-        d<0&&l.push(c)
-    }
-    b+="\u0080";
-    for(c=0;c<=i;c+=8)n[c>>5]|=(b.charCodeAt(c/8)&255)<<24-c%32;
-    n[(i+64>>9<<4)+15]=i;
-    for(c=8;c--;)m[c]=parseInt(Math.pow(l[c],0.5).toString(e).substr(2,8),e);
-    for(c=0;c<n.length;c+=e){
-      a=m.slice(0);
-      for(b=0;b<64;b++){
-        g[b]=b<e?n[b+c]:h(h(h(f(g[b-2],17)^f(g[b-2],19)^g[b-2]>>>10,g[b-7]),f(g[b-15],7)^f(g[b-15],18)^g[b-15]>>>3),g[b-e]);
-        i=h(h(h(h(a[7],f(a[4],6)^f(a[4],11)^f(a[4],25)),a[4]&a[5]^~a[4]&a[6]),parseInt(Math.pow(l[b],1/3).toString(e).substr(2,8),e)),g[b]);
-        q=(f(a[0],2)^f(a[0],13)^f(a[0],22))+(a[0]&a[1]^a[0]&a[2]^a[1]&a[2]);
-        for(d=8;--d;)a[d]=d==4?h(a[3],i):a[d-1];a[0]=h(i,q)
-      }
-      for(d=8;d--;)m[d]+=a[d]
-    }
-    for(c=0;c<8;c++)
-      for(b=8;b--;)r+=(m[c]>>>b*4&15).toString(e);
-    return r
+    return Sha256.hash(b);
+
   });
   
   
@@ -516,3 +496,142 @@ SPIRALCRAFT.UTF8 = (function(my) {
 
   return my;
 }(SPIRALCRAFT.UTF8 || {}));
+
+
+/*
+ * String utility
+ */
+SPIRALCRAFT.StringUtil = (function(my) {
+  
+  my.toBytes = (function (s) {
+    var result = [];
+    var stack;
+    for (var i = 0; i < s.length; i++) {
+      ch=s.charCodeAt(i);
+      stack=[];
+      do {
+        stack.push(ch & 0xFF);
+        ch = ch >> 8;
+      } while (ch);
+      result = result.concat(stack.reverse());
+    }
+    return result;
+  });
+
+  return my;
+}(SPIRALCRAFT.StringUtil || {}));
+
+
+
+// http://www.movable-type.co.uk/scripts/sha256.html
+// Licensed from author under LGPL (http://creativecommons.org/licenses/LGPL/2.1/)
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+/*  SHA-256 implementation in JavaScript | (c) Chris Veness 2002-2010 | www.movable-type.co.uk    */
+/*   - see http://csrc.nist.gov/groups/ST/toolkit/secure_hashing.html                             */
+/*         http://csrc.nist.gov/groups/ST/toolkit/examples.html                                   */
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+var Sha256 = {};  // Sha256 namespace
+
+/**
+ * Generates SHA-256 hash of string
+ *
+ * @param {String} msg                String to be hashed
+ * @returns {String}                  Hash of msg as hex character string
+ */
+Sha256.hash = function(msg) {
+    
+    // constants [§4.2.2]
+    var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+             0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+             0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+             0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+             0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+             0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+    // initial hash value [§5.3.1]
+    var H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+
+    // PREPROCESSING 
+ 
+    msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
+
+    // convert string msg into 512-bit/16-integer blocks arrays of ints [§5.2.1]
+    var l = msg.length/4 + 2;  // length (in 32-bit integers) of msg + ‘1’ + appended length
+    var N = Math.ceil(l/16);   // number of 16-integer-blocks required to hold 'l' ints
+    var M = new Array(N);
+
+    for (var i=0; i<N; i++) {
+        M[i] = new Array(16);
+        for (var j=0; j<16; j++) {  // encode 4 chars per integer, big-endian encoding
+            M[i][j] = (msg.charCodeAt(i*64+j*4)<<24) | (msg.charCodeAt(i*64+j*4+1)<<16) | 
+                      (msg.charCodeAt(i*64+j*4+2)<<8) | (msg.charCodeAt(i*64+j*4+3));
+        } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
+    }
+    // add length (in bits) into final pair of 32-bit integers (big-endian) [§5.1.1]
+    // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
+    // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
+    M[N-1][14] = ((msg.length-1)*8) / Math.pow(2, 32); M[N-1][14] = Math.floor(M[N-1][14])
+    M[N-1][15] = ((msg.length-1)*8) & 0xffffffff;
+
+
+    // HASH COMPUTATION [§6.1.2]
+
+    var W = new Array(64); var a, b, c, d, e, f, g, h;
+    for (var i=0; i<N; i++) {
+
+        // 1 - prepare message schedule 'W'
+        for (var t=0;  t<16; t++) W[t] = M[i][t];
+        for (var t=16; t<64; t++) W[t] = (Sha256.sigma1(W[t-2]) + W[t-7] + Sha256.sigma0(W[t-15]) + W[t-16]) & 0xffffffff;
+
+        // 2 - initialise working variables a, b, c, d, e, f, g, h with previous hash value
+        a = H[0]; b = H[1]; c = H[2]; d = H[3]; e = H[4]; f = H[5]; g = H[6]; h = H[7];
+
+        // 3 - main loop (note 'addition modulo 2^32')
+        for (var t=0; t<64; t++) {
+            var T1 = h + Sha256.Sigma1(e) + Sha256.Ch(e, f, g) + K[t] + W[t];
+            var T2 = Sha256.Sigma0(a) + Sha256.Maj(a, b, c);
+            h = g;
+            g = f;
+            f = e;
+            e = (d + T1) & 0xffffffff;
+            d = c;
+            c = b;
+            b = a;
+            a = (T1 + T2) & 0xffffffff;
+        }
+         // 4 - compute the new intermediate hash value (note 'addition modulo 2^32')
+        H[0] = (H[0]+a) & 0xffffffff;
+        H[1] = (H[1]+b) & 0xffffffff; 
+        H[2] = (H[2]+c) & 0xffffffff; 
+        H[3] = (H[3]+d) & 0xffffffff; 
+        H[4] = (H[4]+e) & 0xffffffff;
+        H[5] = (H[5]+f) & 0xffffffff;
+        H[6] = (H[6]+g) & 0xffffffff; 
+        H[7] = (H[7]+h) & 0xffffffff; 
+    }
+
+    return Sha256.toHexStr(H[0]) + Sha256.toHexStr(H[1]) + Sha256.toHexStr(H[2]) + Sha256.toHexStr(H[3]) + 
+           Sha256.toHexStr(H[4]) + Sha256.toHexStr(H[5]) + Sha256.toHexStr(H[6]) + Sha256.toHexStr(H[7]);
+}
+
+Sha256.ROTR = function(n, x) { return (x >>> n) | (x << (32-n)); }
+Sha256.Sigma0 = function(x) { return Sha256.ROTR(2,  x) ^ Sha256.ROTR(13, x) ^ Sha256.ROTR(22, x); }
+Sha256.Sigma1 = function(x) { return Sha256.ROTR(6,  x) ^ Sha256.ROTR(11, x) ^ Sha256.ROTR(25, x); }
+Sha256.sigma0 = function(x) { return Sha256.ROTR(7,  x) ^ Sha256.ROTR(18, x) ^ (x>>>3);  }
+Sha256.sigma1 = function(x) { return Sha256.ROTR(17, x) ^ Sha256.ROTR(19, x) ^ (x>>>10); }
+Sha256.Ch = function(x, y, z)  { return (x & y) ^ (~x & z); }
+Sha256.Maj = function(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); }
+
+//
+// hexadecimal representation of a number 
+//   (note toString(16) is implementation-dependant, and  
+//   in IE returns signed numbers when used on full words)
+//
+Sha256.toHexStr = function(n) {
+  var s="", v;
+  for (var i=7; i>=0; i--) { v = (n>>>(i*4)) & 0xf; s += v.toString(16); }
+  return s;
+}
+

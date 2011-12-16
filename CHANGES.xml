@@ -8,7 +8,7 @@
     <authorId>miketoth
     </authorId>
     
-    <date>2011-09-15
+    <date>
     </date>
     
     <detail>
@@ -37,6 +37,38 @@
     </detail>
   </scm:Change>
 
+  <scm:Change>
+    <revision>0.4.15.2
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>2011-12-15
+    </date>
+    
+    <detail>
+      <scm:Change>
+        
+        <notes>
+          <scm:Note>Replaced SHA-256 implementation with one that doesn't
+            break in Safari
+          </scm:Note>
+        
+        </notes>
+        
+        <path>package
+        </path>
+        
+        <resources>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+        
+      </scm:Change>
+    </detail>
+  </scm:Change>
+  
   <scm:Change>
     <revision>0.4.15.1
     </revision>

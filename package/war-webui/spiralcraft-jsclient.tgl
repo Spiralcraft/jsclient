@@ -1,7 +1,18 @@
-<!-- webui client config -->
-<script type="text/javascript">
-SPIRALCRAFT.webui.syncLocation="<%=[:class:/spiralcraft/servlet/webui/ServiceContext].asyncURL/%>";
-SPIRALCRAFT.webui.sessionExpiration=<%=[:class:/javax/servlet/http/HttpSession].maxInactiveInterval*1000/%>;
-SPIRALCRAFT.security.realmName="<%=[:class:/spiralcraft/security/auth/AuthSession].realmName/%>";
-</script>
-<!-- /webui client config -->
+<%@doclet
+  tgns:webui="class:/spiralcraft/servlet/webui/"
+  tgns:http="class:/javax/servlet/http/"
+  tgns:auth="class:/spiralcraft/security/auth/"
+  tgns:fn="class:/spiralcraft/lang/functions/"
+  tgns:html="class:/spiralcraft/servlet/webui/components/html"
+  %> 
+  <%html:Script target="HEAD" targetOptional="true"%>
+    
+    <%.code%>
+      // webui client config
+      SPIRALCRAFT.webui.syncLocation="{|[webui:ServiceContext].asyncURL|}";
+      SPIRALCRAFT.webui.sessionExpiration={|[http:HttpSession].maxInactiveInterval*1000|};
+      SPIRALCRAFT.security.realmName="{|[*fn:IfBound{`[auth:AuthSession].realmName`}]|}";
+      
+    <%/.code%>
+  <%/html:Script%>
+<%/@doclet%>

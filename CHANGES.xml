@@ -2,6 +2,69 @@
   xmlns:scm="class:/spiralcraft/scm/meta/"
   >
   <scm:Change>
+    <revision>0.4.17
+    </revision>
+
+    <authorId>miketoth
+    </authorId>
+    
+    <date>
+    </date>
+    
+    <detail>
+      <scm:Change>
+      
+        <revision>-dev1
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Use script tag to provide compatibility with new Page
+            object.
+          </scm:Note>
+        </notes>
+        
+        <path>package
+        </path>
+        
+        <resources>
+          <URI>war-webui/spiralcraft-jsclient.tgl
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev1
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Add facility for registering client-side bindings for
+            server-side controls.
+          </scm:Note>
+          <scm:Note>Internal refactoring- changed "my" variable to "self".
+            "self" will be used to supply object context to js 
+            functions by convention.
+          </scm:Note>
+        
+        </notes>
+        
+        <path>package
+        </path>
+        
+        <resources>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+        
+      </scm:Change>
+    </detail>
+  </scm:Change>
+
+
+  <scm:Change>
     <revision>0.4.16
     </revision>
 

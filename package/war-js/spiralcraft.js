@@ -28,9 +28,9 @@
  *
  * Common functionality that does not depend on external functions
  */
-var SPIRALCRAFT = (function (my) { 
+var SPIRALCRAFT = (function (self) { 
         
-  var _private = my._private = my._private || {};
+  var _private = self._private = self._private || {};
   
   var _debug = true;
 
@@ -64,28 +64,30 @@ var SPIRALCRAFT = (function (my) {
   }  
   
            
-  return my; 
+  return self; 
 }(SPIRALCRAFT || {}));
 
 /*
  * DOM functions and event handlers
  */
-SPIRALCRAFT.dom = (function(my) {
+SPIRALCRAFT.dom = (function(self) {
   
-  my.bodyOnLoad = function() {
+  var _peers= {};
+  
+  self.bodyOnLoad = function() {
     // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
     
   };
   
-  my.registerBodyOnLoad = function(fn) {
-    var lastFn = my.bodyOnLoad;
-    my.bodyOnLoad = function() { 
+  self.registerBodyOnLoad = function(fn) {
+    var lastFn = self.bodyOnLoad;
+    self.bodyOnLoad = function() { 
       lastFn();
       fn();
     };
   };
 
-  my.windowOnResize = function(event) {
+  self.windowOnResize = function(event) {
     // window.console.log("SPIRALCRAFT.dom.windowOnResize(): "+event);
     
   };
@@ -94,7 +96,7 @@ SPIRALCRAFT.dom = (function(my) {
     window.addEventListener(
       "resize",
       function(event) { 
-        my.windowOnResize(event);
+        self.windowOnResize(event);
       },
       false
     );
@@ -103,27 +105,28 @@ SPIRALCRAFT.dom = (function(my) {
     window.attachEvent(
         "onresize",
         function() { 
-          my.windowOnResize(null);
+          self.windowOnResize(null);
         }
       );
   }
   
-  my.registerWindowOnResize = function(fn) {
-    var lastFn = my.windowOnResize;
-    my.windowOnResize = function() { 
+  self.registerWindowOnResize = function(fn) {
+    var lastFn = self.windowOnResize;
+    self.windowOnResize = function() { 
       lastFn();
       fn();
     };
   };
   
-  return my;
+  
+  return self;
 }(SPIRALCRAFT.dom || {}));
 
 
 /*
  * HTTP related functionality 
  */
-SPIRALCRAFT.http = (function(my) {
+SPIRALCRAFT.http = (function(self) {
   
   var _factories = [
     function() { return new XMLHttpRequest(); },
@@ -160,7 +163,7 @@ SPIRALCRAFT.http = (function(my) {
   };
   
   
-  my.get = function(location,options) {
+  self.get = function(location,options) {
     
     if (options.method == null)
     { options.method = "GET";
@@ -198,7 +201,7 @@ SPIRALCRAFT.http = (function(my) {
   };
   
   
-  my.parseHeaders = function(request) {
+  self.parseHeaders = function(request) {
     var headerText = request.getAllResponseHeaders();  // Text from the server
     var headers = {}; // This will be our return value
     var ls = /^\s*/;  // Leading space regular expression
@@ -224,7 +227,7 @@ SPIRALCRAFT.http = (function(my) {
    * Encode the property name/value pairs of an object as if they were from
    * an HTML form, using application/x-www-form-urlencoded format
    */
-  my.encodeFormData = function(data) {
+  self.encodeFormData = function(data) {
     var pairs = [];
     var regexp = /%20/g; // A regular expression to match an encoded space
 
@@ -243,14 +246,14 @@ SPIRALCRAFT.http = (function(my) {
     return pairs.join('&');
   };
   
-  return my;
+  return self;
   
 }(SPIRALCRAFT.http || {}));
 
 
-SPIRALCRAFT.ajax = (function (my) { 
+SPIRALCRAFT.ajax = (function (self) { 
   
-  my.get = function(location,callback) {
+  self.get = function(location,callback) {
     SPIRALCRAFT.http.get(
       location,
       { 
@@ -262,16 +265,16 @@ SPIRALCRAFT.ajax = (function (my) {
   };
 
   
-  return my; 
+  return self; 
 }(SPIRALCRAFT.ajax || {}));
 
 
 /*
  * Function for manipulating URIs
  */
-SPIRALCRAFT.uri = (function(my) {
+SPIRALCRAFT.uri = (function(self) {
 
-  my.addQueryTerm = (function(uri,name,value) {
+  self.addQueryTerm = (function(uri,name,value) {
   
     if (uri.indexOf("?")>0)
     { uri=uri+"&"+name+"="+value;
@@ -282,42 +285,58 @@ SPIRALCRAFT.uri = (function(my) {
     return uri;
   });
 
-  return my;
+  return self;
 }(SPIRALCRAFT.uri || {}));
 
+/*
+ * Utilities
+ */
+SPIRALCRAFT.util = (function(self) {
+
+  self.sizeOf = (function(o) {
+    var size = 0, key;
+    for (key in o) {
+        if (o.hasOwnProperty(key)) size++;
+    }
+    return size;
+  });
+
+  return self;
+}(SPIRALCRAFT.util || {}));
 
 /*
  * Spiralcraft webui related functions
  */
-SPIRALCRAFT.webui = (function(my) {
+SPIRALCRAFT.webui = (function(self) {
 
   var _sessionSyncCount = 0;
+  var _peers={};
 
-  my.syncLocation = "";
-  my.sessionExpiration = 0;
-  my.timeoutRef = null;
+  self.syncLocation = "";
+  self.sessionExpiration = 0;
+  self.timeoutRef = null;
   
   /*
    * Call the server to tickle the session and reset the pending check
    */
-  my.checkSession = (function() {
+  self.checkSession = (function() {
     
     // Reset anything that might be pending
-    if (my.timeoutRef!=null) {
-      window.clearTimeout(my.timeoutRef);
-      my.timeoutRef=null;
+    if (self.timeoutRef!=null) {
+      window.clearTimeout(self.timeoutRef);
+      self.timeoutRef=null;
     }
     
     // Pull the new expiration time from the server
     SPIRALCRAFT.ajax.get(
-      SPIRALCRAFT.uri.addQueryTerm(my.syncLocation+"","oob","sessionSync"),
+      SPIRALCRAFT.uri.addQueryTerm(self.syncLocation+"","oob","sessionSync"),
       function(data) {
         // alert("Got "+data+" from server");
-        my.sessionExpiration=parseInt(data);
-        if (my.sessionExpiration>0) {
+        self.sessionExpiration=parseInt(data);
+        if (self.sessionExpiration>0) {
           if (_sessionSyncCount>0) {
-            my.timeoutRef=window.setTimeout(my.checkSession,my.sessionExpiration-60000);
-            // alert("Rechecking session in "+((my.sessionExpiration-60000)/1000)+" seconds");
+            self.timeoutRef=window.setTimeout(self.checkSession,self.sessionExpiration-60000);
+            // alert("Rechecking session in "+((self.sessionExpiration-60000)/1000)+" seconds");
           }
         } else {
           // alert("Session expired, reloading");
@@ -332,18 +351,18 @@ SPIRALCRAFT.webui = (function(my) {
   /*
    * Toggles session keepalive
    */
-  my.sessionSync = (function(on) {
+  self.sessionSync = (function(on) {
   
     
     if (on) {
       _sessionSyncCount++;
-      my.checkSession();
+      self.checkSession();
     } else {
       if (_sessionSyncCount>0) { 
         _sessionSyncCount--;
-        if (_sessionSyncCount==0 && my.timeoutRef!=null)  { 
-          window.clearTimeout(my.timeoutRef);
-          my.timeoutRef=null;
+        if (_sessionSyncCount==0 && self.timeoutRef!=null)  { 
+          window.clearTimeout(self.timeoutRef);
+          self.timeoutRef=null;
         }
       } else { 
         console.log("Error: sessionSync turned off too many times");
@@ -352,19 +371,31 @@ SPIRALCRAFT.webui = (function(my) {
     console.log("Sync count = "+_sessionSyncCount);
     
   });
+
+  self.bindPeer = function(peer) {
+    _peers[peer.id] = peer;
+    if (peer.onRegister) { 
+      peer.onRegister(peer);
+    };
   
-  return my;
+    if (peer.onBodyLoad) {
+      self.registerBodyOnLoad( function() { peer.onBodyLoad(peer); } );
+    };
+    
+  };
+  
+  return self;
 }(SPIRALCRAFT.webui || {}));
 
 
 /*
  * Functions for interacting with Spiralcraft security subsystem
  */
-SPIRALCRAFT.security = (function(my) {
+SPIRALCRAFT.security = (function(self) {
   
-  my.realmName = "";
+  self.realmName = "";
   
-  my.realmDigest = (function(challenge,username,clearpass) {
+  self.realmDigest = (function(challenge,username,clearpass) {
     return SPIRALCRAFT.SHA256.digestUTF8(
         SPIRALCRAFT.UTF8.decode(
             challenge+this.realmName+username.toLowerCase()+clearpass
@@ -372,7 +403,7 @@ SPIRALCRAFT.security = (function(my) {
       );
   });
 
-  my.processLoginControls =  
+  self.processLoginControls =  
     (function(challengeInput,usernameInput,clearpassInput,digestpassInput) {
       
       digestpassInput.value = 
@@ -395,7 +426,7 @@ SPIRALCRAFT.security = (function(my) {
         
   });
 
-  my.loginFormOnSubmit =  
+  self.loginFormOnSubmit =  
     (function(loginForm) {
       this.processLoginControls(
         loginForm.login_challenge,
@@ -406,7 +437,7 @@ SPIRALCRAFT.security = (function(my) {
       return true;
   });
   
-  my.processRegistrationControls =  
+  self.processRegistrationControls =  
     (function(
       usernameInput,
       clearpassInput,
@@ -449,7 +480,7 @@ SPIRALCRAFT.security = (function(my) {
         
   });
 
-  my.registrationFormOnSubmit =  
+  self.registrationFormOnSubmit =  
     (function(registrationForm) {
       this.processRegistrationControls(
         registrationForm.register_username,
@@ -462,48 +493,48 @@ SPIRALCRAFT.security = (function(my) {
       return true;
   });
   
-  return my;
+  return self;
 }(SPIRALCRAFT.security || {}));
 
 
 /*
  * SHA256 digester
  */
-SPIRALCRAFT.SHA256 = (function(my) {
+SPIRALCRAFT.SHA256 = (function(self) {
 
-  my.digestUTF8 = (function (b) {
+  self.digestUTF8 = (function (b) {
     
     return Sha256.hash(b);
 
   });
   
   
-  return my;
+  return self;
 }(SPIRALCRAFT.SHA256 || {}));
 
 /*
  * UTF8 string encoder
  */
-SPIRALCRAFT.UTF8 = (function(my) {
+SPIRALCRAFT.UTF8 = (function(self) {
 
-  my.encode = (function(s) {
+  self.encode = (function(s) {
     return unescape( encodeURIComponent( s ) );
   });
   
-  my.decode = (function (s) {
+  self.decode = (function (s) {
     return decodeURIComponent( escape( s ) );
   });
 
-  return my;
+  return self;
 }(SPIRALCRAFT.UTF8 || {}));
 
 
 /*
  * String utility
  */
-SPIRALCRAFT.StringUtil = (function(my) {
+SPIRALCRAFT.StringUtil = (function(self) {
   
-  my.toBytes = (function (s) {
+  self.toBytes = (function (s) {
     var result = [];
     var stack;
     for (var i = 0; i < s.length; i++) {
@@ -518,7 +549,7 @@ SPIRALCRAFT.StringUtil = (function(my) {
     return result;
   });
 
-  return my;
+  return self;
 }(SPIRALCRAFT.StringUtil || {}));
 
 

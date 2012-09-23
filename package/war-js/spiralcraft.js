@@ -73,13 +73,38 @@ var SPIRALCRAFT = (function (self) {
 SPIRALCRAFT.dom = (function(self) {
   
   var _peers= {};
+  var _bodyOnLoadHooked = false;
   
   self.bodyOnLoad = function() {
     // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
     
-  };
+  }; 
+  
+  self.checkBodyOnLoadInit = function () {
+    if (!_bodyOnLoadHooked) {
+      
+      
+      // Hook into the DOM onload event
+      if (document.body.onload) {
+        var lastFn=document.bodyOnLoad;
+        document.body.onload=function() {
+          lastFn();
+          SPIRALCRAFT.dom.bodyOnLoad();
+        }
+      } else {
+        document.body.onload=function() {
+          SPIRALCRAFT.dom.bodyOnLoad();
+        }
+      }
+      _bodyOnLoadHooked=true;
+    }
+    
+  }
   
   self.registerBodyOnLoad = function(fn) {
+    
+    self.checkBodyOnLoadInit();
+    
     var lastFn = self.bodyOnLoad;
     self.bodyOnLoad = function() { 
       lastFn();
@@ -268,7 +293,6 @@ SPIRALCRAFT.ajax = (function (self) {
   return self; 
 }(SPIRALCRAFT.ajax || {}));
 
-
 /*
  * Function for manipulating URIs
  */
@@ -372,14 +396,55 @@ SPIRALCRAFT.webui = (function(self) {
     
   });
 
+  /*
+   * Registers a javascript "peer" object that is associated with the DOM 
+   *   element that has the specified id. The peer object can hold custom state 
+   *   and methods that can be used to interact with the application model
+   *   associated with the DOM element.
+   */
   self.bindPeer = function(peer) {
     _peers[peer.id] = peer;
+      
     if (peer.onRegister) { 
-      peer.onRegister(peer);
+      peer.onRegister.call(peer,peer);
     };
   
     if (peer.onBodyLoad) {
-      self.registerBodyOnLoad( function() { peer.onBodyLoad(peer); } );
+      SPIRALCRAFT.dom.registerBodyOnLoad( function() { peer.onBodyLoad.call(peer,peer); } );
+    };
+    
+  };
+  
+  self.getPeer = function(id) {
+    return _peers[id];
+  };
+  
+  self.getElement = function(id) {
+    return document.getElementById(id);
+    
+  };
+  
+  /*
+   * Generic dispatcher class which keeps a set of listeners for an event
+   *   and routes event notification to the listeners.
+   */
+  self.dispatcher = function() {
+    
+    this._listeners = [];
+    
+    this.notify = function(data) {
+      
+      for (var i=0; i<this._listeners.length ; i++)
+      { this._listeners[i](data);
+      }
+    };
+    
+    this.listen = function(thisArg,fn) {
+      this._listeners[this._listeners.length]=
+        function (data) {
+          // Call the listener in its own object context
+          fn.call(thisArg,data);
+        };
     };
     
   };
@@ -552,6 +617,23 @@ SPIRALCRAFT.StringUtil = (function(self) {
   return self;
 }(SPIRALCRAFT.StringUtil || {}));
 
+
+/*
+ * JSON utility
+ */
+SPIRALCRAFT.json = (function(self) {
+  
+  self.stringify = (function (o) {
+    return JSON.stringify(o);
+    
+  });
+  
+  self.parse = (function (s) {
+    return JSON.parse(s);
+  });
+
+  return self;
+}(SPIRALCRAFT.json || {}));
 
 
 // http://www.movable-type.co.uk/scripts/sha256.html

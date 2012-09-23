@@ -14,6 +14,27 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev2
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Added webui event system
+          </scm:Note>
+          <scm:Note>Fix context using js "call" in several places.
+          </scm:Note>
+          <scm:Note>Added wrapper for JSON.parse, JSON.stringify functionality.
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev1
         </revision>
         

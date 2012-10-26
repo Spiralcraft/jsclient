@@ -222,6 +222,9 @@ SPIRALCRAFT.http = (function(self) {
     };
     
     _request.open(options.method,location);
+    if (options.contentType) {
+      _request.setRequestHeader("Content-Type",options.contentType);
+    }
     _request.send(options.data);
   };
   
@@ -288,7 +291,33 @@ SPIRALCRAFT.ajax = (function (self) {
       }
     );
   };
+  
+  self.post = function(location,callback,content) {
+    SPIRALCRAFT.http.get(
+      location,
+      {
+        method: "POST",
+        data: content,
+        onSuccess: function(request) { 
+          callback(request.responseText); 
+        }
+      }
+    );
+  };
 
+  self.postForm = function(location,callback,formObject) {
+    SPIRALCRAFT.http.get(
+      location,
+      {
+        method: "POST",
+        contentType: "application/x-www-form-urlencoded",
+        data: SPIRALCRAFT.http.encodeFormData(formObject),
+        onSuccess: function(request) { 
+          callback(request.responseText); 
+        }
+      }
+    );
+  };
   
   return self; 
 }(SPIRALCRAFT.ajax || {}));

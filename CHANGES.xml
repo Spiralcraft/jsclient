@@ -14,6 +14,23 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev3
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Add support for ajax form post
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev2
         </revision>
         

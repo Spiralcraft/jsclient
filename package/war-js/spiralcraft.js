@@ -1,5 +1,5 @@
 //
-//Copyright (c) 2010,2011 Michael Toth
+//Copyright (c) 2010,2012 Michael Toth
 //Spiralcraft Inc., All Rights Reserved
 //
 //This package is part of the Spiralcraft project and is licensed under
@@ -74,9 +74,16 @@ SPIRALCRAFT.dom = (function(self) {
   
   var _peers= {};
   var _bodyOnLoadHooked = false;
+  var _bodyOnLoadFired = false;
+  var _tardyBodyOnLoad = false;
   
   self.bodyOnLoad = function() {
     // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
+    _bodyOnLoadFired = true;
+    self.bodyOnLoadChain();
+  }; 
+  
+  self.bodyOnLoadChain = function() {
     
   }; 
   
@@ -99,17 +106,35 @@ SPIRALCRAFT.dom = (function(self) {
       _bodyOnLoadHooked=true;
     }
     
-  }
+  };
+  
+  self.isBodyOnLoadHooked = function() {
+    return _bodyOnLoadHooked;
+  };
+
+  self.isTardyBodyOnLoad = function() {
+    return _tardyBodyOnLoad;
+  };
+  
+  self.wasBodyOnLoadFired = function() {
+    return _bodyOnLoadFired;
+  };
   
   self.registerBodyOnLoad = function(fn) {
     
     self.checkBodyOnLoadInit();
+    if (!_bodyOnLoadFired) {
     
-    var lastFn = self.bodyOnLoad;
-    self.bodyOnLoad = function() { 
-      lastFn();
+      var lastFn = self.bodyOnLoadChain;
+      self.bodyOnLoadChain = function() { 
+        lastFn();
+        fn();
+      };
+    } else {
+      // Just run it now b/c body.onload already fired
+      _tardyBodyOnLoad=true;
       fn();
-    };
+    }
   };
 
   self.windowOnResize = function(event) {

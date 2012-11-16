@@ -14,6 +14,23 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev4
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Make body on load intercept more reliable
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev3
         </revision>
         

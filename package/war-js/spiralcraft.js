@@ -77,36 +77,31 @@ SPIRALCRAFT.dom = (function(self) {
   var _bodyOnLoadFired = false;
   var _tardyBodyOnLoad = false;
   
+  // This function is returned by hookDocumentReady() to call the
+  //   init sequence
   self.bodyOnLoad = function() {
     // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
     _bodyOnLoadFired = true;
     self.bodyOnLoadChain();
   }; 
   
+  // This function will be replaced with a chaining function
+  //   whenever registerBodyOnLoad(function) is
+  //   called.
   self.bodyOnLoadChain = function() {
     
   }; 
   
-  self.checkBodyOnLoadInit = function () {
+  // This function is is called to return the main bodyOnLoad() init
+  //   function and ensures that it is only called once.
+  self.hookDocumentReady = function() {
     if (!_bodyOnLoadHooked) {
-      
-      
-      // Hook into the DOM onload event
-      if (document.body.onload) {
-        var lastFn=document.bodyOnLoad;
-        document.body.onload=function() {
-          lastFn();
-          SPIRALCRAFT.dom.bodyOnLoad();
-        }
-      } else {
-        document.body.onload=function() {
-          SPIRALCRAFT.dom.bodyOnLoad();
-        }
-      }
       _bodyOnLoadHooked=true;
+      return self.bodyOnLoad;
+    } else {
+      alert("SPIRALCRAFT.dom.hookDocumentReady() called more than once");
     }
-    
-  };
+  }
   
   self.isBodyOnLoadHooked = function() {
     return _bodyOnLoadHooked;
@@ -122,7 +117,6 @@ SPIRALCRAFT.dom = (function(self) {
   
   self.registerBodyOnLoad = function(fn) {
     
-    self.checkBodyOnLoadInit();
     if (!_bodyOnLoadFired) {
     
       var lastFn = self.bodyOnLoadChain;

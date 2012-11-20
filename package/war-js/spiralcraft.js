@@ -28,6 +28,16 @@
  *
  * Common functionality that does not depend on external functions
  */
+
+// Shorthand for getting the SPIRALCRAFT.webui peer JS object for a dom
+//   element.
+var $C() = function (something) {
+  
+  return SPIRALCRAFT.webui.getPeer(something.id);
+};
+
+
+// Main SPIRALCRAFT namespace
 var SPIRALCRAFT = (function (self) { 
         
   var _private = self._private = self._private || {};
@@ -66,6 +76,7 @@ var SPIRALCRAFT = (function (self) {
            
   return self; 
 }(SPIRALCRAFT || {}));
+
 
 /*
  * DOM functions and event handlers
@@ -279,14 +290,16 @@ SPIRALCRAFT.http = (function(self) {
     var regexp = /%20/g; // A regular expression to match an encoded space
 
     for(var name in data) {
-      var value = data[name].toString();
-      // Create a name/value pair, but encode name and value first
-      // The global function encodeURIComponent does almost what we want,
-      // but it encodes spaces as %20 instead of as "+". We have to
-      // fix that with String.replace()
-      var pair = encodeURIComponent(name).replace(regexp,"+") + '=' +
-        encodeURIComponent(value).replace(regexp,"+");
-      pairs.push(pair);
+      if (data[name]) {
+        var value = data[name].toString();
+        // Create a name/value pair, but encode name and value first
+        // The global function encodeURIComponent does almost what we want,
+        // but it encodes spaces as %20 instead of as "+". We have to
+        // fix that with String.replace()
+        var pair = encodeURIComponent(name).replace(regexp,"+") + '=' +
+          encodeURIComponent(value).replace(regexp,"+");
+        pairs.push(pair);
+      }
     }
 
     // Concatenate all the name/value pairs, separating them with &
@@ -682,6 +695,12 @@ SPIRALCRAFT.json = (function(self) {
 
   return self;
 }(SPIRALCRAFT.json || {}));
+
+
+var $C() = function (something) {
+  
+  return SPIRALCRAFT.getPeer(something.id);
+};
 
 
 // http://www.movable-type.co.uk/scripts/sha256.html

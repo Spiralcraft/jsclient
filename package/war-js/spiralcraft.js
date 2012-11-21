@@ -697,11 +697,6 @@ SPIRALCRAFT.json = (function(self) {
 }(SPIRALCRAFT.json || {}));
 
 
-var $C() = function (something) {
-  
-  return SPIRALCRAFT.getPeer(something.id);
-};
-
 
 // http://www.movable-type.co.uk/scripts/sha256.html
 // Licensed from author under LGPL (http://creativecommons.org/licenses/LGPL/2.1/)

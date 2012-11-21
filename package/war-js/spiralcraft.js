@@ -31,7 +31,7 @@
 
 // Shorthand for getting the SPIRALCRAFT.webui peer JS object for a dom
 //   element.
-var $C() = function (something) {
+var $C = function (something) {
   
   return SPIRALCRAFT.webui.getPeer(something.id);
 };

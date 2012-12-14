@@ -14,6 +14,27 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev7
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Don't confuse "false" with an undefined value in AJAX
+            form posts
+          </scm:Note>
+          <scm:Note>Use OOP and automatic registration to simplify the
+            association of peers with DOM elements.
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev6
         </revision>
         

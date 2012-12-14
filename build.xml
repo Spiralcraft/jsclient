@@ -2,7 +2,7 @@
 
 	
   <property name="module" value="jsclient"/>
-  <property name="buildVersion" value="0.4.17-dev6"/>
+  <property name="buildVersion" value="0.4.17-dev7"/>
   <property name="publish.resolver.type" value="distrib"/>    
 
   <import file="../../build/build-spiralcraft-common.xml"/>

@@ -29,12 +29,7 @@
  * Common functionality that does not depend on external functions
  */
 
-// Shorthand for getting the SPIRALCRAFT.webui peer JS object for a dom
-//   element.
-var $C = function (something) {
-  
-  return SPIRALCRAFT.webui.getPeer(something.id);
-};
+
 
 
 // Main SPIRALCRAFT namespace
@@ -217,7 +212,6 @@ SPIRALCRAFT.http = (function(self) {
     _factory(); // Throw an error
   };
   
-  
   self.get = function(location,options) {
     
     if (options.method == null)
@@ -290,7 +284,7 @@ SPIRALCRAFT.http = (function(self) {
     var regexp = /%20/g; // A regular expression to match an encoded space
 
     for(var name in data) {
-      if (data[name]) {
+      if (!(typeof data[name] === "undefined")) {
         var value = data[name].toString();
         // Create a name/value pair, but encode name and value first
         // The global function encodeURIComponent does almost what we want,
@@ -396,6 +390,8 @@ SPIRALCRAFT.webui = (function(self) {
 
   var _sessionSyncCount = 0;
   var _peers={};
+  var autoId = 1;
+ 
 
   self.syncLocation = "";
   self.sessionExpiration = 0;
@@ -457,6 +453,9 @@ SPIRALCRAFT.webui = (function(self) {
     
   });
 
+  self.nextAutoId = function() {
+    return autoId++;
+  }
   /*
    * Registers a javascript "peer" object that is associated with the DOM 
    *   element that has the specified id. The peer object can hold custom state 
@@ -485,6 +484,48 @@ SPIRALCRAFT.webui = (function(self) {
     
   };
   
+  self.newPeer = function(id) {
+    var peer=new self.Peer();
+    peer.id=id;
+    return peer;
+    alert("Created peer for id "+id);
+  };
+  
+  /*
+   * The JS Peer object for dom elements
+   */
+  self.Peer = function() { 
+  };
+  
+  self.Peer.prototype = new function() {
+
+    this.constructor=self.Peer;
+    this.id=null;
+    this.data={};
+    this.events={};
+    
+    this.attachBodyOnLoad = function(fn) {
+      var self=this;
+      SPIRALCRAFT.dom.registerBodyOnLoad( function() { fn.call(self,self); } );
+    };
+    
+    this.setData = function (data) {
+      this.data=data;
+    };
+    
+    this.setEvents = function(eventNames) {
+      for (var i=0; i<eventNames.length; i++)  {
+        this.events[eventNames[i]]=new self.dispatcher();
+      }
+    };
+    
+    this.element = function() {
+      return SPIRALCRAFT.webui.getElement(this.id);
+    };
+    
+  }
+
+  
   /*
    * Generic dispatcher class which keeps a set of listeners for an event
    *   and routes event notification to the listeners.
@@ -510,9 +551,41 @@ SPIRALCRAFT.webui = (function(self) {
     
   };
   
+  //Shorthand for getting the SPIRALCRAFT.webui peer JS object for a dom
+  //element.
+  self.peerAPI = function (something) {
+    if (typeof something == "string") { 
+     var peer=self.getPeer(something);
+     if (!peer)
+     { 
+       peer=self.newPeer(something);
+       self.bindPeer(peer);
+     }
+     return peer;
+    } else if (typeof something == "object") {
+     if (!something.id)
+     { something.id="_sc"+(self.nextAutoId());
+     }
+     var peer=self.getPeer(something.id);
+     if (!peer)
+     { 
+       peer=self.newPeer(something.id);
+       self.bindPeer(peer);
+     }
+     return peer;
+    } else {
+     alert("Unrecognized parameter "+something+": "+(typeof something));
+    }
+    
+  };
+    
   return self;
 }(SPIRALCRAFT.webui || {}));
 
+
+var $SC = function(something) {
+  return SPIRALCRAFT.webui.peerAPI.call(SPIRALCRAFT.webui,something);
+};
 
 /*
  * Functions for interacting with Spiralcraft security subsystem

@@ -26,9 +26,9 @@
       
       <filterInstance>
         <autofilter:Controller>
-          <configURI>../config/
+          <configURI>$(spiralcraft.builder.dir)/../config/
           </configURI>
-          <filesURI>../..
+          <filesURI>$(spiralcraft.builder.dir)/..
           </filesURI>          
         </autofilter:Controller>
       </filterInstance>

@@ -578,7 +578,54 @@ SPIRALCRAFT.webui = (function(self) {
     }
     
   };
+  
+  self.Port = function (url) {
+    this.url=url;
+  }
     
+  self.Port.prototype = new function() {
+
+    this.constructor=self.Port;
+    
+    /*
+     * Query the port by adding the data elements to the URL query string,
+     *   and call the callback function with a JSON object parsed from the
+     *   result data
+     */
+    this.queryJSON = function(data,callback) {
+      this.query(data,function (content) { callback(SPIRALCRAFT.json.parse(content)); });
+    };
+    
+    /*
+     * Query the port by adding the data elements to the URL query string,
+     *   and call the callback function with the result data
+     */
+    this.query = function(data,callback) {
+      
+      var queryUrl=this.url;
+      if (data)
+      {
+        queryUrl=queryUrl+"&"+SPIRALCRAFT.http.encodeFormData(data);
+      }
+      SPIRALCRAFT.ajax.get (
+        queryUrl,
+        callback?callback:function(cb) {}
+      );
+    };
+
+
+    /*
+     * Encode the data object as a form post and post it to the port. Call
+     *   the callback function with the result data.
+     */
+    this.postForm = function(data,callback) {
+      SPIRALCRAFT.ajax.postForm (
+        this.url,
+        callback?callback:function(cb) {},
+        data
+      );
+    };
+  }
   return self;
 }(SPIRALCRAFT.webui || {}));
 

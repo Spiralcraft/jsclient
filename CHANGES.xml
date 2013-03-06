@@ -14,6 +14,23 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev9
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Add keepalive parameter to jsclient init
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-webui/spiralcraft-jsclient.tgl
+        </path>
+        
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev8
         </revision>
         

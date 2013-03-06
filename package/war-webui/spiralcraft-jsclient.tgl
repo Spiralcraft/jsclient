@@ -4,6 +4,8 @@
   tgns:auth="class:/spiralcraft/security/auth/"
   tgns:fn="class:/spiralcraft/lang/functions/"
   tgns:html="class:/spiralcraft/servlet/webui/components/html"
+  tgns:this="context://code/spiralcraft-jsclient/"
+  contextX="{ keepalive:=false }"
   %> 
   <%html:Script target="HEAD" targetOptional="true"%>
     
@@ -15,4 +17,11 @@
       
     <%/.code%>
   <%/html:Script%>
+  <%If x="[this:spiralcraft-jsclient].keepalive"%>
+    <%html:Script target="HEAD" targetOptional="true"%>
+      <%.code%>
+        SPIRALCRAFT.webui.sessionSync(true);
+      <%/.code%>
+    <%/html:Script%>
+  <%/If%>
 <%/@doclet%>

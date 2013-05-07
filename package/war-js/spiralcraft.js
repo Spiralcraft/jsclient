@@ -168,6 +168,65 @@ SPIRALCRAFT.dom = (function(self) {
     };
   };
   
+  self.getParent = function(child,name) {
+    while (child.parentNode)
+    { 
+      child=child.parentNode;
+      if (SPIRALCRAFT.dom.isDescribedBy(child,name))
+      { return child;
+      }
+    }
+    return null;
+  };
+  
+  self.isDescribedBy = function(node,name) {
+    if (name.startsWith("."))
+    { return SPIRALCRAFT.dom.hasClass(node,name.substring(1));
+    }
+    else if (name.startsWith("#"))
+    { return node.id==name.substring(1);
+    }
+    else
+    { return node.nodeName==name;
+    }
+    return false;
+  };
+  
+  self.hasClass = function(node,name) {
+    if (node.classList) {
+      return node.classList.contains(name);
+    }
+    else if (node.className) { 
+      return node.className.split(" ").indexOf(name)>=0;
+    }
+    return false;
+  };
+  
+  self.makeFormAnchor = function(child,name) {
+    if (name==null) {
+      name=child.id;
+    }
+    var form=SPIRALCRAFT.dom.getParent(child,"FORM");
+    form.action=SPIRALCRAFT.uri.setFragment(form.action,name);
+    return true;
+  };
+  
+  self.chainEvent = function(first,next) {
+    if (first==null) { 
+      return next;
+    } else if (next==null) {
+      return first;
+    } else {
+      return function() {
+        var ret=first.apply(this,arguments);
+        if (ret!=false) {
+          return next.apply(this,arguments);
+        } else {
+          return false;
+        }
+      };
+    }
+  };
   
   return self;
 }(SPIRALCRAFT.dom || {}));
@@ -364,6 +423,14 @@ SPIRALCRAFT.uri = (function(self) {
     return uri;
   });
 
+  self.setFragment = function(uri,fragment) {
+    
+    if (uri.indexOf("#")>0) {
+      uri=uri.substring(0,uri.indexOf("#"));
+    }
+    return uri+"#"+fragment;
+  };
+  
   return self;
 }(SPIRALCRAFT.uri || {}));
 
@@ -380,6 +447,9 @@ SPIRALCRAFT.util = (function(self) {
     return size;
   });
 
+
+    
+    
   return self;
 }(SPIRALCRAFT.util || {}));
 
@@ -523,6 +593,10 @@ SPIRALCRAFT.webui = (function(self) {
       return SPIRALCRAFT.webui.getElement(this.id);
     };
     
+    this.attachHandler = function(event,fn) {
+      var element=this.element();
+      element[event]=SPIRALCRAFT.dom.chainEvent(element[event],fn);
+    }
   }
 
   

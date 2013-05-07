@@ -14,6 +14,29 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev10
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Add functionality to chain handlers onto dom element events
+          </scm:Note>
+          <scm:Note>Add DOM upward traversal functionality to find nearest
+            parent with specified name/class/id
+          </scm:Note>
+          <scm:Note>Add functionality to set the fragment of a button's 
+            parent form action when the button is pressed.
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-webui/spiralcraft-jsclient.tgl
+        </path>
+        
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev9
         </revision>
         

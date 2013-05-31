@@ -39,10 +39,10 @@ var SPIRALCRAFT = (function (self) {
   
   var _debug = true;
 
-  if(window.console){  
-    var consoleBackup = window.console.log;
-    if (!consoleBackup)
-    { consoleBackup=console.log;
+  if (typeof window.console != 'undefined'){  
+    var consoleBackup = window.console;
+    if (typeof consoleBackup == 'undefined')
+    { consoleBackup=console;
     }
     // window.console.log("Replacing window.console.log()");
     // consoleBackUp("Writing to consoleBackUp");
@@ -51,19 +51,28 @@ var SPIRALCRAFT = (function (self) {
       if(_debug){  
         try
         { 
-          if (consoleBackup)
-          { consoleBackup.apply(window.console,[str]);
-          }
-          else if (console)
+          if (typeof consoleBackup != 'undefined')
           { 
-            if (console.log)
-            { console.log.apply(console,[str]);
+            if (typeof consoleBackup.log != 'undefined')
+            { consoleBackup.log(str);
+            }
+          }
+          else if (typeof console != 'undefined')
+          {
+            if (typeof console.log != 'undefined')
+            { console.log(str);
             }
           }
         }
         catch (err)
         {
-          alert(err);
+          if (typeof JSON != 'undefined') { 
+            alert("Error reporting '"+str+"':"+JSON.stringify(err));
+          } else if (typeof err.message != 'undefined') {
+            alert("Error reporting '"+str+"':"+err.message);
+          } else {
+            alert("Error reporting '"+str+"':"+err);
+          }
         }
       }  
     }  
@@ -151,7 +160,7 @@ SPIRALCRAFT.dom = (function(self) {
     
   };
   
-  if (window.addEventListener) { 
+  if (typeof window.addEventListener != 'undefined') { 
     window.addEventListener(
       "resize",
       function(event) { 
@@ -160,7 +169,7 @@ SPIRALCRAFT.dom = (function(self) {
       false
     );
   }
-  else if (window.attachEvent) {
+  else if (typeof window.attachEvent != 'undefined') {
     window.attachEvent(
         "onresize",
         function() { 
@@ -202,10 +211,10 @@ SPIRALCRAFT.dom = (function(self) {
   };
   
   self.hasClass = function(node,name) {
-    if (node.classList) {
+    if (typeof node.classList != 'undefined') {
       return node.classList.contains(name);
     }
-    else if (node.className) { 
+    else if (typeof node.className != 'undefined') { 
       return node.className.split(" ").indexOf(name)>=0;
     }
     return false;

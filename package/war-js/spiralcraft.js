@@ -40,9 +40,9 @@ var SPIRALCRAFT = (function (self) {
   var _debug = true;
 
   if (typeof window.console != 'undefined'){  
-    var consoleBackup = window.console;
-    if (typeof consoleBackup == 'undefined')
-    { consoleBackup=console;
+    var consoleBackup = window.console.log;
+    if (consoleBackup == null)
+    { consoleBackup=console.log;
     }
     // window.console.log("Replacing window.console.log()");
     // consoleBackUp("Writing to consoleBackUp");
@@ -51,19 +51,12 @@ var SPIRALCRAFT = (function (self) {
       if(_debug){  
         try
         { 
-          if (typeof consoleBackup != 'undefined')
-          { 
-            if (typeof consoleBackup.log != 'undefined')
-            { consoleBackup.log(str);
-            }
-          }
-          else if (typeof console != 'undefined')
-          {
-            if (typeof console.log != 'undefined')
-            { 
-              if (window.console.log != console.log)
-              { console.log(str);
-              }
+          if (consoleBackup!=null)
+          {             
+            if (typeof window.console != 'undefined') { 
+              consoleBackup.apply(window.console,[str]);
+            } else if (typeof console!= 'undefined') {
+              consoleBackup.apply(console,[str]);
             }
           }
         }

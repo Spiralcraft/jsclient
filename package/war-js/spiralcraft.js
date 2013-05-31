@@ -60,7 +60,10 @@ var SPIRALCRAFT = (function (self) {
           else if (typeof console != 'undefined')
           {
             if (typeof console.log != 'undefined')
-            { console.log(str);
+            { 
+              if (window.console.log != console.log)
+              { console.log(str);
+              }
             }
           }
         }

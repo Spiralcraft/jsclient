@@ -50,7 +50,16 @@ var SPIRALCRAFT = (function (self) {
     window.console.log = function(str){  
       if(_debug){  
         try
-        { consoleBackup.apply(window.console,[str]);  
+        { 
+          if (consoleBackup)
+          { consoleBackup.apply(window.console,[str]);
+          }
+          else if (console)
+          { 
+            if (console.log)
+            { console.log.apply(console,[str]);
+            }
+          }
         }
         catch (err)
         {
@@ -516,10 +525,10 @@ SPIRALCRAFT.webui = (function(self) {
           self.timeoutRef=null;
         }
       } else { 
-        console.log("Error: sessionSync turned off too many times");
+        window.console.log("Error: sessionSync turned off too many times");
       }
     }
-    console.log("Sync count = "+_sessionSyncCount);
+    window.console.log("Sync count = "+_sessionSyncCount);
     
   });
 
@@ -734,14 +743,14 @@ SPIRALCRAFT.security = (function(self) {
         );
       
       clearpassInput.value="";
-      
-      console.log(
+/*      
+      window.console.log(
         (challengeInput!=null?challengeInput.value:"")+","+
         usernameInput.value+","+
         clearpassInput.value+" = "+
         digestpassInput.value
       );
-        
+*/        
       return true;
         
   });
@@ -790,12 +799,13 @@ SPIRALCRAFT.security = (function(self) {
         
       }
       
-      console.log(
+/*      
+      window.console.log(
         usernameInput.value+","+
         clearpassInput.value+" = "+
         digestpassInput.value
       );
-        
+*/        
       return true;
         
   });

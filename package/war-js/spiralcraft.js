@@ -52,8 +52,11 @@ var SPIRALCRAFT = (function (self) {
         try
         { 
           if (consoleBackup!=null)
-          {             
-            if (typeof window.console != 'undefined') { 
+          {          
+            if (typeof consoleBackup != 'function') {
+              // IE can't call consoleBackup.apply
+              consoleBackup(str);
+            } else if (typeof window.console != 'undefined') { 
               consoleBackup.apply(window.console,[str]);
             } else if (typeof console!= 'undefined') {
               consoleBackup.apply(console,[str]);

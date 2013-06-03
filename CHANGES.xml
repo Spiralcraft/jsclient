@@ -14,6 +14,23 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev12
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Fix error when calling console.log after developer tools
+            have started on IE
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-webui/spiralcraft-jsclient.tgl
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev11
         </revision>
         

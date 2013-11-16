@@ -3,6 +3,8 @@
 	
   <property name="module" value="jsclient"/>
   <property name="buildVersion" value="0.4.17-dev12"/>
+  <property name="build.status" value="milestone"/>
+    
   <property name="publish.resolver.type" value="distrib"/>    
 
   <import file="../../build/build-spiralcraft-common.xml"/>

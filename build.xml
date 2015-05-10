@@ -1,14 +1,13 @@
 <project name="spiralcraft-jsclient" default="pack" basedir=".">
 
-	
+	<property name="organization" value="spiralcraft"/>
   <property name="module" value="jsclient"/>
-  <property name="buildVersion" value="0.4.17-dev12"/>
-  <property name="build.status" value="milestone"/>
+  <property name="buildVersion" value="0.4.17-dev13"/>
+  <property name="build.status" value="integration"/>
     
   <property name="publish.resolver.type" value="distrib"/>    
-
-  <import file="../../build/build-spiralcraft-common.xml"/>
-	
+  <property name="depends.dir" location="../../repo"/>
+  <import file="../../build/build-common.xml"/>
 
 
 </project>

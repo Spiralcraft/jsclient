@@ -14,6 +14,23 @@
     <detail>
       <scm:Change>
       
+        <revision>-dev13
+        </revision>
+        
+        
+        <notes>
+          <scm:Note>Allow use of FormData object in calls to methods that
+            post forms in order to support async file uploads.
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev12
         </revision>
         

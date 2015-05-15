@@ -16,7 +16,7 @@
 //Portions adapted from:
 //
 //JavaScript: The Definitive Guide by David Flanagan
-//Copyright © 1997-2000, O'Reilly & Associates
+//Copyright ï¿½ 1997-2000, O'Reilly & Associates
 //
 //"These programs come with no warranty of any sort. They are copyrighted 
 //material and are not in the public domain. As long as you retain the 
@@ -288,7 +288,7 @@ SPIRALCRAFT.http = (function(self) {
     _factory(); // Throw an error
   };
   
-  self.get = function(location,options) {
+  self.request = function(location,options) {
     
     if (options.method == null)
     { options.method = "GET";
@@ -328,6 +328,7 @@ SPIRALCRAFT.http = (function(self) {
     _request.send(options.data);
   };
   
+  self.get = self.request;
   
   self.parseHeaders = function(request) {
     var headerText = request.getAllResponseHeaders();  // Text from the server
@@ -384,7 +385,7 @@ SPIRALCRAFT.http = (function(self) {
 SPIRALCRAFT.ajax = (function (self) { 
   
   self.get = function(location,callback) {
-    SPIRALCRAFT.http.get(
+    SPIRALCRAFT.http.request(
       location,
       { 
         onSuccess: function(request) { 
@@ -395,7 +396,7 @@ SPIRALCRAFT.ajax = (function (self) {
   };
   
   self.post = function(location,callback,content) {
-    SPIRALCRAFT.http.get(
+    SPIRALCRAFT.http.request(
       location,
       {
         method: "POST",
@@ -407,18 +408,44 @@ SPIRALCRAFT.ajax = (function (self) {
     );
   };
 
+  /*
+   * Post data contained in a generic object by encoding fields
+   */
   self.postForm = function(location,callback,formObject) {
-    SPIRALCRAFT.http.get(
-      location,
-      {
-        method: "POST",
-        contentType: "application/x-www-form-urlencoded",
-        data: SPIRALCRAFT.http.encodeFormData(formObject),
-        onSuccess: function(request) { 
-          callback(request.responseText); 
+    if (formObject instanceof FormData) {
+      SPIRALCRAFT.ajax.postFormData(location,callback,formObject);
+    } else {
+      
+      SPIRALCRAFT.http.request(
+        location,
+        {
+          method: "POST",
+          contentType: "application/x-www-form-urlencoded",
+          data: SPIRALCRAFT.http.encodeFormData(formObject),
+          onSuccess: function(request) { 
+            callback(request.responseText); 
+          }
         }
-      }
-    );
+      );
+    }
+       
+  };
+  
+  /*
+   * Post data contained in the FormData object
+   */
+  self.postFormData = function(location,callback,formData) {
+    SPIRALCRAFT.http.request(
+        location,
+        {
+          method: "POST",
+          data: formData,
+          onSuccess: function(request) { 
+            callback(request.responseText); 
+          }
+        }
+      );
+    
   };
   
   return self; 
@@ -928,7 +955,7 @@ var Sha256 = {};  // Sha256 namespace
  */
 Sha256.hash = function(msg) {
     
-    // constants [§4.2.2]
+    // constants [ï¿½4.2.2]
     var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
              0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
              0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
@@ -937,15 +964,15 @@ Sha256.hash = function(msg) {
              0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
              0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
              0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
-    // initial hash value [§5.3.1]
+    // initial hash value [ï¿½5.3.1]
     var H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
 
     // PREPROCESSING 
  
-    msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [§5.1.1]
+    msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [ï¿½5.1.1]
 
-    // convert string msg into 512-bit/16-integer blocks arrays of ints [§5.2.1]
-    var l = msg.length/4 + 2;  // length (in 32-bit integers) of msg + ‘1’ + appended length
+    // convert string msg into 512-bit/16-integer blocks arrays of ints [ï¿½5.2.1]
+    var l = msg.length/4 + 2;  // length (in 32-bit integers) of msg + ï¿½1ï¿½ + appended length
     var N = Math.ceil(l/16);   // number of 16-integer-blocks required to hold 'l' ints
     var M = new Array(N);
 
@@ -956,14 +983,14 @@ Sha256.hash = function(msg) {
                       (msg.charCodeAt(i*64+j*4+2)<<8) | (msg.charCodeAt(i*64+j*4+3));
         } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
     }
-    // add length (in bits) into final pair of 32-bit integers (big-endian) [§5.1.1]
+    // add length (in bits) into final pair of 32-bit integers (big-endian) [ï¿½5.1.1]
     // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
     // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
     M[N-1][14] = ((msg.length-1)*8) / Math.pow(2, 32); M[N-1][14] = Math.floor(M[N-1][14])
     M[N-1][15] = ((msg.length-1)*8) & 0xffffffff;
 
 
-    // HASH COMPUTATION [§6.1.2]
+    // HASH COMPUTATION [ï¿½6.1.2]
 
     var W = new Array(64); var a, b, c, d, e, f, g, h;
     for (var i=0; i<N; i++) {

@@ -22,6 +22,9 @@
           <scm:Note>Allow use of FormData object in calls to methods that
             post forms in order to support async file uploads.
           </scm:Note>
+          <scm:Note>Gracefully handle conditions where AJAX interactions
+            encounter expired sessions
+          </scm:Note>
         </notes>
         
         <path>package/war-js/spiralcraft.js

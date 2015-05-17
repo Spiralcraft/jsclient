@@ -245,6 +245,26 @@ SPIRALCRAFT.dom = (function(self) {
     }
   };
   
+  self.isNode = function(o) {
+    return (
+        typeof Node === "object" ? o instanceof Node : 
+          o  && typeof o === "object" 
+          && typeof o.nodeType === "number" 
+          && typeof o.nodeName==="string"
+      );
+    
+  }
+
+  //Returns true if it is a DOM element    
+  self.isElement = function(o) {
+    return (
+      typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+      o && typeof o === "object" && o !== null && o.nodeType === 1 
+      && typeof o.nodeName==="string"
+    );
+    
+  }  
+  
   return self;
 }(SPIRALCRAFT.dom || {}));
 
@@ -303,6 +323,13 @@ SPIRALCRAFT.http = (function(self) {
       function () {
         if (_request.status >= 200 && _request.status < 300) {
           options.onSuccess(_request);
+        }
+        if (_request.status == 409) {
+          alert("Session expired - resetting");
+          window.location.replace
+            (SPIRALCRAFT.uri.removeQueryParameter
+               (window.location.href,"lrs")
+            );
         }
         if (options.onComplete) { 
           options.onComplete(_request); 
@@ -474,6 +501,30 @@ SPIRALCRAFT.uri = (function(self) {
     }
     return uri+"#"+fragment;
   };
+  
+  
+  self.removeQueryParameter = function (uri, parameter) {
+    //prefer to use l.search if you have a location/link object
+    var uriparts= uri.split('?');   
+    if (uriparts.length>=2) {
+
+        var prefix= encodeURIComponent(parameter)+'=';
+        var pars= uriparts[1].split(/[&;]/g);
+
+        //reverse iteration as may be destructive
+        for (var i= pars.length; i-- > 0;) {    
+            //idiom for string.startsWith
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+                pars.splice(i, 1);
+            }
+        }
+
+        uri= uriparts[0]+'?'+pars.join('&');
+        return uri;
+    } else {
+        return uri;
+    }
+  }
   
   return self;
 }(SPIRALCRAFT.uri || {}));
@@ -737,8 +788,13 @@ SPIRALCRAFT.webui = (function(self) {
      *   the callback function with the result data.
      */
     this.postForm = function(data,callback) {
+      var url=this.url;
+      if (SPIRALCRAFT.dom.isElement(data) && data.tagName=="FORM") {
+        var form=data;
+        data=new FormData(form);
+      }
       SPIRALCRAFT.ajax.postForm (
-        this.url,
+        url,
         callback?callback:function(cb) {},
         data
       );

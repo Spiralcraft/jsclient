@@ -816,11 +816,16 @@ SPIRALCRAFT.security = (function(self) {
   self.realmName = "";
   
   self.realmDigest = (function(challenge,username,clearpass) {
-    return SPIRALCRAFT.SHA256.digestUTF8(
+    var digest=
+      SPIRALCRAFT.SHA256.digestUTF8(
         SPIRALCRAFT.UTF8.decode(
-            challenge+this.realmName+username.toLowerCase()+clearpass
+            this.realmName+username.toLowerCase()+clearpass
         )
       );
+    if (challenge!=null && challenge.length>0) {
+      digest=SPIRALCRAFT.SHA256.digestUTF8(challenge+digest);    
+    }
+    return digest;
   });
 
   self.processLoginControls =  

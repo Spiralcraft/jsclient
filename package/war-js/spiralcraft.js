@@ -883,7 +883,19 @@ SPIRALCRAFT.webui = (function(self) {
       }    
     }
    
-    if (element.tagName=="DIV")
+    if (["DIV"
+        ,"SPAN"
+        ,"LABEL"
+        ,"PRE"
+        ,"TITLE"
+        ,"H1"
+        ,"H2"
+        ,"H3"
+        ,"H4"
+        ,"H5"
+        ,"H6"
+        ].indexOf(element.tagName)>-1
+       )
     { this.controlSetter = function (value) { this.textContent=value; };
     }
     else
@@ -1025,10 +1037,10 @@ SPIRALCRAFT.webui = (function(self) {
    case 1:
      if (node.attributes)
      { 
-       if (node.attributes["sc-context"])
-       { node.context=node.attributes["sc-context"].value;
+       if (self.scAttribute(node,"sc-context"))
+       { node.context=self.scAttribute(node,"sc-context").value;
        }
-       if (node.attributes["sc-bind"])
+       if (self.scAttribute(node,"sc-bind"))
        { self.bind(node);
        }
        if (node.tagName=="SCRIPT" && node.type=="sc-context")
@@ -1043,15 +1055,25 @@ SPIRALCRAFT.webui = (function(self) {
    
   };
   
+  self.scAttribute = function(node,name) {
+    var attr=node.attributes[name];
+    if (attr)
+    { return attr; 
+    }
+    attr=node.attributes["data-"+name];
+    return attr;
+  }
+  
   //
   //Bind a node to the target indicated by the expression
   //
   self.bind = function (node) {
    
-   var expr=node.attributes["sc-bind"].value;
+   var expr=self.scAttribute(node,"sc-bind").value;
+   
    var setter
-     =node.attributes["sc-bind-setter"]
-     ?node.attributes["sc-bind-setter"].value
+     =self.scAttribute(node,"sc-bind-setter")
+     ?self.scAttribute(node,"sc-bind-setter").value
      :null;
    
    var peer=self.activatePeer(node);

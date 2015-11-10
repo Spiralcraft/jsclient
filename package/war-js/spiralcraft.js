@@ -383,11 +383,17 @@ SPIRALCRAFT.http = (function(self) {
       }
     };
     
+    self.configureXHR(_request);
+    
     _request.open(options.method,location);
     if (options.contentType) {
       _request.setRequestHeader("Content-Type",options.contentType);
     }
     _request.send(options.data);
+  };
+  
+  self.configureXHR = function(request) {
+    
   };
   
   self.get = self.request;

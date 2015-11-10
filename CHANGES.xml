@@ -18,6 +18,22 @@
         </revision>
         
         <notes>
+          <scm:Note>Added SPIRALCRAFT.http.configureXHR function which can be
+            overridden to configure the XmlHttpRequest object.
+          </scm:Note>
+        </notes>
+                
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev16
+        </revision>
+        
+        <notes>
           <scm:Note>Add data binding functionality to connect DOM elements to
             data in peer objects associated with containing elements.
           </scm:Note>

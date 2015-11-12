@@ -2,8 +2,7 @@
 
 	<property name="organization" value="spiralcraft"/>
   <property name="module" value="jsclient"/>
-  <property name="buildVersion" value="0.4.17-dev16"/>
-  <property name="build.status" value="integration"/>
+	<property file="version.properties"/>
     
   <property name="publish.resolver.type" value="distrib"/>    
   <property name="depends.dir" location="../../repo"/>

@@ -1287,13 +1287,13 @@ SPIRALCRAFT.StringUtil = (function(self) {
  */
 SPIRALCRAFT.json = (function(self) {
   
-  self.stringify = (function (o) {
-    return JSON.stringify(o);
+  self.stringify = (function (o,replace,spacing) {
+    return JSON.stringify(o,replace,spacing);
     
   });
   
-  self.parse = (function (s) {
-    return JSON.parse(s);
+  self.parse = (function (s,reviver) {
+    return JSON.parse(s,reviver);
   });
 
   return self;

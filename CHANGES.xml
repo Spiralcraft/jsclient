@@ -12,6 +12,63 @@
     </date>
     
     <detail>
+    
+    
+      <scm:Change>
+      
+        <revision>-dev18
+        </revision>
+        
+        <notes>
+          <scm:Note>Utility functions to shorthand essential functionality
+            in $SC object.
+          </scm:Note>
+          <scm:Note>DOM traversal utility
+          </scm:Note>
+        </notes>
+                
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev18
+        </revision>
+        
+        <notes>
+          <scm:Note>Remove obsolete files
+          </scm:Note>
+        </notes>
+                
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>spiralcraft-jquery.js
+          </URI>
+          <URI>spiralcraft-anytime.js
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev18
+        </revision>
+        
+        <notes>
+          <scm:Note>Begin implementation of templating functionality
+          </scm:Note>
+        </notes>
+                
+        <path>package/war-js/template.js
+        </path>
+        
+      </scm:Change>
+
       <scm:Change>
       
         <revision>-dev17

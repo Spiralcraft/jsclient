@@ -6,6 +6,7 @@
     
   <property name="publish.resolver.type" value="distrib"/>    
   <property name="depends.dir" location="../../repo"/>
+  <property name="launch.dir" location="test/run"/>
   <import file="../../build/build-common.xml"/>
 
 

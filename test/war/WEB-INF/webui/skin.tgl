@@ -4,12 +4,13 @@
   servlet="class:/javax/servlet/http/"
   j="class:/java/lang/"
   html="class:/spiralcraft/servlet/webui/components/html/"
+  jsclient="context://code/spiralcraft-jsclient/"
   %> 
 <html>
   <head>
-    <script type="text/javascript" src="/jsclient/spiralcraft.js">
+    <script type="text/javascript" src="/js/spiralcraft-jsclient/spiralcraft.js">
     </script>
-    <%@include resource="context://files/source/spiralcraft-jsclient.tgl"/%>
+    <%jsclient:spiralcraft-jsclient/%>
   </head>
   <body>
   

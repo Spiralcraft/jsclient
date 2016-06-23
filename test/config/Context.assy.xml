@@ -9,6 +9,16 @@
   <debug>false
   </debug>
   
+  <initParameters>
+    <httpd:InitParameter>
+      <name>spiralcraft.instance.rootURI
+      </name>
+          
+      <value>${spiralcraft.builder.dir}/..
+      </value>            
+    </httpd:InitParameter>
+  </initParameters>
+
   <filterMappings>
     <httpd:FilterMapping>
       <filterName>controller
@@ -23,16 +33,20 @@
     <httpd:FilterHolder>
       <filterName>controller
       </filterName>
-      
-      <filterInstance>
-        <autofilter:Controller>
-          <configURI>$(spiralcraft.builder.dir)/../config/
-          </configURI>
-          <filesURI>$(spiralcraft.builder.dir)/..
-          </filesURI>          
-        </autofilter:Controller>
-      </filterInstance>
-      
+
+      <filterClass>spiralcraft.servlet.autofilter.Controller
+      </filterClass>
+ 
+      <initParameters>
+        <httpd:InitParameter>
+          <name>debug
+          </name>
+          
+          <value>false
+          </value>
+        </httpd:InitParameter>
+
+      </initParameters>
     </httpd:FilterHolder>
   </filters>
   

@@ -60,6 +60,20 @@ if (!Function.prototype.bind) {
   };
 }
 
+// Shorthand reference and API fascade
+var $SC = function(something) {
+  return SPIRALCRAFT.webui.peerAPI.call(SPIRALCRAFT.webui,something);
+  
+};
+
+$SC.onBodyLoad = function(fn) {
+  SPIRALCRAFT.dom.registerBodyOnLoad(fn);
+};
+
+$SC.init = function(fn) {
+  SPIRALCRAFT.start();
+}
+
 
 // Main SPIRALCRAFT namespace
 var SPIRALCRAFT = (function (self) { 
@@ -299,6 +313,39 @@ SPIRALCRAFT.dom = (function(self) {
     );
     
   }  
+  
+  // Recursively descends the DOM tree and "visits" elements using a
+  //   callback function. If the function returns true the element's
+  //   children will be scanned.
+  self.scanElements= function (element,callback) {
+    var children=element.children;
+    for (var i=0; i<children.length;i++)
+    {
+      if (callback(element,children[i]))
+      { self.scanElements(children[i],callback);
+      }
+    }
+  }
+  
+  // Recursively descends the DOM tree and "visits" nodes using a
+  //   callback function. If the function returns true the node's
+  //   children will be scanned.
+  self.scanNodes= function (node,callback) {
+    var children=node.childNodes;
+    for (var i=0; i<children.length;i++)
+    {
+      if (callback(node,children[i]))
+      { self.scanNodes(children[i],callback);
+      }
+    }
+  }
+  
+  self.attributeValue= function(node,attrName) {
+    if (node.getAttribute)
+    { return node.getAttribute(attrName);
+    }
+    return null;
+  }
   
   return self;
 }(SPIRALCRAFT.dom || {}));
@@ -814,7 +861,7 @@ SPIRALCRAFT.webui = (function(self) {
   
   self.Port = function (url) {
     this.url=url;
-  }
+  };
     
   self.Port.prototype = new function() {
 
@@ -1102,14 +1149,6 @@ SPIRALCRAFT.webui = (function(self) {
 }(SPIRALCRAFT.webui || {}));
 
 
-var $SC = function(something) {
-  
-  return SPIRALCRAFT.webui.peerAPI.call(SPIRALCRAFT.webui,something);
-  
-  
-};
-
-$SC.start=SPIRALCRAFT.start;
 
 /*
  * Functions for interacting with Spiralcraft security subsystem

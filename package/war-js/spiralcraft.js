@@ -165,6 +165,9 @@ SPIRALCRAFT.dom = (function(self) {
     self.bodyOnLoadChain();
   }; 
   
+  
+
+  
   // This function will be replaced with a chaining function
   //   whenever registerBodyOnLoad(function) is
   //   called.

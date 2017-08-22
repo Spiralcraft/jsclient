@@ -70,7 +70,13 @@ $SC.onBodyLoad = function(fn) {
   SPIRALCRAFT.dom.registerBodyOnLoad(fn);
 };
 
-$SC.init = function(fn) {
+$SC.init = function(options) {
+  
+  SPIRALCRAFT.defaultOptions = {
+    scanDOMOnInit: false
+  };
+  
+  SPIRALCRAFT.options=(options || SPIRALCRAFT.defaultOptions);
   SPIRALCRAFT.start();
 }
 
@@ -154,6 +160,8 @@ SPIRALCRAFT.dom = (function(self) {
   self.bodyOnLoad = function() {
     // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
     _bodyOnLoadFired = true;
+    
+    SPIRALCRAFT.webui.doInit();
     self.bodyOnLoadChain();
   }; 
   
@@ -313,6 +321,18 @@ SPIRALCRAFT.dom = (function(self) {
     );
     
   }  
+
+  // Recursively iterate the DOM starting from an element and call
+  //   a handler for the element, its children and its next siblings
+  self.siblingIterateElements = function(main,handler) {
+    do {
+        if(main.nodeType == 1)
+            handler(main);
+        if(main.hasChildNodes())
+            self.siblingIterateElements(main.firstChild,handler);
+    }
+    while (main = main.nextSibling);
+  }
   
   // Recursively descends the DOM tree and "visits" elements using a
   //   callback function. If the function returns true the element's
@@ -346,6 +366,10 @@ SPIRALCRAFT.dom = (function(self) {
     }
     return null;
   }
+  
+
+  
+  
   
   return self;
 }(SPIRALCRAFT.dom || {}));
@@ -649,7 +673,19 @@ SPIRALCRAFT.webui = (function(self) {
   self.syncLocation = "";
   self.sessionExpiration = 0;
   self.timeoutRef = null;
-  
+
+  self.doInit = function() {
+    if (SPIRALCRAFT.options.scanDOMOnInit) {
+      console.log("Scanning DOM...");
+      self.processTree(document.documentElement);
+      console.log("Done scanning DOM");
+    }
+    if (SPIRALCRAFT.options.enableSessionSync) {
+      SPIRALCRAFT.dom.registerBodyOnLoad(function() { SPIRALCRAFT.webui.sessionSync(true); });
+    }
+    
+  }; 
+      
   /*
    * Call the server to tickle the session and reset the pending check
    */
@@ -1051,6 +1087,21 @@ SPIRALCRAFT.webui = (function(self) {
    return peer;
   }
   
+  /*
+   * Initialize specific view logic for this DOM node as specificed by the SC "view"
+   *   attribute
+   */
+  self.initView = function(node) {
+    var attrValue=self.getSCAttribute(node,"view").value
+    var viewConf;
+    try {
+      viewConf=JSON6.parse(attrValue);
+      console.log("View: "+JSON.stringify(viewConf));
+      var peer=self.activatePeer(node);
+    } catch (e) {
+      console.log("Caught "+e+" parsing "+attrValue)
+    }
+  }
   
   //Sequential ID for uniquely identifying dom nodes
   self.SCNID=1;
@@ -1059,13 +1110,14 @@ SPIRALCRAFT.webui = (function(self) {
   //Process the DOM and creating the peer object tree 
   //  that parallels the DOM structure
   //
+  // This updates bound controls with data changes to the model.
   self.processTree = function (node) {
    
    if (!node.scnid)
    { 
      node.scnid=self.SCNID++;
      // console.log(node.scnid+" ("+node.nodeType+") "+node);
-     self.processNode(node);
+     self.initNode(node);
    }
    
    if (node.bound)
@@ -1084,16 +1136,28 @@ SPIRALCRAFT.webui = (function(self) {
   //Process a DOM node and if called for wire it into the peer object tree 
   //  that parallels the DOM
   //
-  self.processNode = function (node) {
+  // If a node has a "sc-context" attribute, the value will be used as the
+  //   context name for reference from descendants in the DOM tree
+  //
+  // If a SCRIPT with a type "sc-context" is found, the SCRIPT will pe executed
+  //   as new function in the scope of its parent's JS peer object. 
+  //
+  // If a node has a "sc-bind" attribute, the value represents the data model
+  //   that the node communicates with
+  
+  self.initNode = function (node) {
    switch (node.nodeType) {
    
    case 1:
      if (node.attributes)
      { 
-       if (self.scAttribute(node,"sc-context"))
-       { node.context=self.scAttribute(node,"sc-context").value;
+       if (self.getSCAttribute(node,"context"))
+       { node.context=self.getSCAttribute(node,"context").value;
        }
-       if (self.scAttribute(node,"sc-bind"))
+       if (self.getSCAttribute(node,"view"))
+       { self.initView(node);
+       }
+       if (self.getSCAttribute(node,"bind"))
        { self.bind(node);
        }
        if (node.tagName=="SCRIPT" && node.type=="sc-context")
@@ -1108,12 +1172,38 @@ SPIRALCRAFT.webui = (function(self) {
    
   };
   
-  self.scAttribute = function(node,name) {
-    var attr=node.attributes[name];
+  // Find all the SC attributes (data-sc- and other prefixes).
+  self.getSCAttributes = function(node,attrName) {
+    var result=[];
+    if (node.hasAttributes()) {
+      var attrs=node.attributes;
+      
+      for (var i=0;i<attrs.length;i++) {
+        var name=self.normalizeSCAttrName(attrs[i].name);
+        if (name && (!attrName || name==attrName)) {
+          var attr={};
+          attr.name=name;
+          attr.value=attrs[i].value;
+          result.push(attr);
+        }
+      }
+    }
+    return result;
+  }
+  
+  // Return the normalized name of an attribute if it is an SC attribute
+  self.normalizeSCAttrName = function(name) {
+    if (name.startsWith("data-sc-")) return name.substring(8,name.length);
+    if (name.startsWith("sc-")) return name.substring(3,name.length);
+  }
+  
+  // Get an SC attribute using the normalized name
+  self.getSCAttribute = function(node,name) {
+    var attr=node.attributes["sc-"+name];
     if (attr)
     { return attr; 
     }
-    attr=node.attributes["data-"+name];
+    attr=node.attributes["data-sc-"+name];
     return attr;
   }
   
@@ -1122,11 +1212,11 @@ SPIRALCRAFT.webui = (function(self) {
   //
   self.bind = function (node) {
    
-   var expr=self.scAttribute(node,"sc-bind").value;
+   var expr=self.getSCAttribute(node,"bind").value;
    
    var setter
-     =self.scAttribute(node,"sc-bind-setter")
-     ?self.scAttribute(node,"sc-bind-setter").value
+     =self.getSCAttribute(node,"bind-setter")
+     ?self.getSCAttribute(node,"bind-setter").value
      :null;
    
    var peer=self.activatePeer(node);

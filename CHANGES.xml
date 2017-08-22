@@ -20,6 +20,39 @@
         </revision>
         
         <notes>
+          <scm:Note>"sc-view" attributes on elements for setting up view logic using
+            JSON6 objects (WIP)
+          </scm:Note>
+          <scm:Note>$SC.init(conf) accepts configuration object conf to turn on
+            various settings including session sync and full-DOM scan on load for
+            framework attributes.
+          </scm:Note>
+          <scm:Note>Added JSON6 parser
+          </scm:Note>
+          <scm:Note>New js file for client-side framework
+          </scm:Note>
+        </notes>
+                
+        <path>package/war-js/
+        </path>
+        
+        <resources>
+          <URI>app.js
+          </URI>
+          <URI>spiralcraft.js
+          </URI>
+          <URI>json6.js
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev18
+        </revision>
+        
+        <notes>
           <scm:Note>Utility functions to shorthand essential functionality
             in $SC object.
           </scm:Note>

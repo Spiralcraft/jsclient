@@ -17,6 +17,15 @@
       <value>${spiralcraft.builder.dir}/..
       </value>            
     </httpd:InitParameter>
+    
+    <httpd:InitParameter>
+      <name>spiralcraft.servlet.showExceptions
+      </name>
+           
+      <value>true
+      </value>
+    </httpd:InitParameter>     
+    
   </initParameters>
 
   <filterMappings>

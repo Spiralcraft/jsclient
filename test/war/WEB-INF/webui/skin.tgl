@@ -1,28 +1,29 @@
-<%@namespace
-  webuic="class:/spiralcraft/servlet/webui/components/"
-  task="class:/spiralcraft/task/"
-  servlet="class:/javax/servlet/http/"
-  j="class:/java/lang/"
-  html="class:/spiralcraft/servlet/webui/components/html/"
-  jsclient="context://code/spiralcraft-jsclient/"
+<%@doclet
+  tgns:webuic="class:/spiralcraft/servlet/webui/components/"
+  tgns:task="class:/spiralcraft/task/"
+  tgns:servlet="class:/javax/servlet/http/"
+  tgns:j="class:/java/lang/"
+  tgns:h="class:/spiralcraft/servlet/webui/components/html/"
+  tgns:jsclient="context://code/spiralcraft-jsclient/"
   %> 
-<html>
-  <head>
+<%h:Page%>
+  <%RenderTo target="[h:Page].head"%>
     <script type="text/javascript" src="/js/spiralcraft-jsclient/spiralcraft.js">
     </script>
-    <%jsclient:spiralcraft-jsclient/%>
-  </head>
-  <body>
+    <script type="text/javascript" src="/js/spiralcraft-jsclient/json6.js">
+    </script>
+  <%/RenderTo%>
   
-    <!-- skin main insert -->
+  <%jsclient:spiralcraft-jsclient/%>
+  
+  <!-- skin main insert -->
+  
+  
+  <%@insert/%>
+  
+  
+  <!-- / skin main insert -->
+  
     
-    
-    <%@insert/%>
-    
-    
-    <!-- / skin main insert -->
-    
-    
-  </body>
-</html>
-<%/@namespace%>
+<%/h:Page%>
+<%/@doclet%>

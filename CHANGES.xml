@@ -20,6 +20,8 @@
         </revision>
         
         <notes>
+          <scm:Note>Router and RoutedView objects to for main nav control
+          </scm:Note>
           <scm:Note>"sc-view" attributes on elements for setting up view logic using
             JSON6 objects (WIP)
           </scm:Note>

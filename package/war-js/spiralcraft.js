@@ -671,12 +671,19 @@ SPIRALCRAFT.webui = (function(self) {
   var _sessionSyncCount = 0;
   var _peers={};
   var autoId = 1;
- 
 
+  self.viewFactories = {};
   self.syncLocation = "";
   self.sessionExpiration = 0;
   self.timeoutRef = null;
 
+  /*
+   * Performs initialization functions for the WEBUI package. 
+   * 
+   * Called after the DOM has been loaded, but before the set of registered
+   *   bodyOnLoad functions are called. This may result in the registration of
+   *   additional bodyOnLoad functions.
+   */
   self.doInit = function() {
     if (SPIRALCRAFT.options.scanDOMOnInit) {
       console.log("Scanning DOM...");
@@ -688,7 +695,14 @@ SPIRALCRAFT.webui = (function(self) {
     }
     
   }; 
-      
+    
+  /*
+   * Register a view factory function that will return an instance of a view
+   */
+  self.registerView = function(name,fn) {
+    self.viewFactories[name]=fn;
+  }
+  
   /*
    * Call the server to tickle the session and reset the pending check
    */
@@ -1100,9 +1114,19 @@ SPIRALCRAFT.webui = (function(self) {
     try {
       viewConf=JSON6.parse(attrValue);
       console.log("View: "+JSON.stringify(viewConf));
-      var peer=self.activatePeer(node);
+      if (viewConf.type) {
+        var peer=self.activatePeer(node);
+        var factory=self.viewFactories[viewConf.type];
+        if (factory && typeof factory == 'function') { 
+          view=factory(peer,node,viewConf);
+          if (view)
+          { peer.view=view;
+          } else (console.log("No view returned by factory for "+viewConf.type))
+        } else (console.log(viewConf.type+" is not a function"))
+      } else (console.log("No view type specified"))
     } catch (e) {
-      console.log("Caught "+e+" parsing "+attrValue)
+      console.log("Caught "+e+" parsing "+attrValue);
+      throw e;
     }
   }
   

@@ -20,17 +20,39 @@
     </script>
   <%/RenderTo%>
   
-  <div data-sc-view='{ contextName: "viewSwitcher" }'>
+  <div data-sc-view='
+   { type: "router"
+     ,contextName: "mainRouter" 
+   }'
+   >
   
-    <div data-sc-view='{ name: "viewOne"}'>
+    <div data-sc-view='
+      {
+        type: "routedView"
+        ,name: "viewOne"
+        ,router: "mainRouter"
+      }'
+      >
       View One
     </div>
     
-    <div data-sc-view='{ name: "viewTwo"}'>
+    <div data-sc-view='      
+      {
+        type: "routedView"
+        ,name: "viewTwo"
+        ,router: "mainRouter"
+      }'
+      >
       View Two
     </div>
 
-    <div data-sc-view='{ name: "viewThree"}'>
+    <div data-sc-view='
+      { 
+        type: "routedView"
+        ,name: "viewThree"
+        ,router: "mainRouter"
+      }'
+      >
       View Three
     </div>
   </div>

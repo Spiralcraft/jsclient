@@ -12,6 +12,8 @@
     </script>
     <script type="text/javascript" src="/js/spiralcraft-jsclient/json6.js">
     </script>
+    <script type="text/javascript" src="/js/spiralcraft-jsclient/app.js">
+    </script>
   <%/RenderTo%>
   
   <%jsclient:spiralcraft-jsclient/%>

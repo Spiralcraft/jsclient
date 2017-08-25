@@ -30,11 +30,11 @@
  */
 
 
-//
-// Fix the bind method for very old browsers
-//
-// Credit to Douglas Crockford for this bind method
-//
+/*
+ * Fix the bind method for very old browsers
+ *
+ * Credit to Douglas Crockford for this bind method
+ */
 if (!Function.prototype.bind) {
   Function.prototype.bind = function (oThis) {
     if (typeof this !== "function") {
@@ -59,6 +59,27 @@ if (!Function.prototype.bind) {
     return fBound;
   };
 }
+
+// Console-polyfill. MIT license.
+// https://github.com/paulmillr/console-polyfill
+// Make it safe to do console.log() always.
+(function(global) {
+'use strict';
+if (!global.console) {
+ global.console = {};
+}
+var con = global.console;
+var prop, method;
+var dummy = function() {};
+var properties = ['memory'];
+var methods = ('assert,clear,count,debug,dir,dirxml,error,exception,group,' +
+  'groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,' +
+  'show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn').split(',');
+while (prop = properties.pop()) if (!con[prop]) con[prop] = {};
+while (method = methods.pop()) if (!con[method]) con[method] = dummy;
+// Using `this` for web workers & supports Browserify / Webpack.
+})(typeof window === 'undefined' ? this : window);
+
 
 // Shorthand reference and API fascade
 var $SC = function(something) {
@@ -88,52 +109,10 @@ var SPIRALCRAFT = (function (self) {
   
   var _debug = true;
 
-  if (typeof window.console != 'undefined'){  
-    var consoleBackup = window.console.log;
-    if (consoleBackup == null)
-    { consoleBackup=console.log;
-    }
-    // window.console.log("Replacing window.console.log()");
-    // consoleBackUp("Writing to consoleBackUp");
-    
-    window.console.log = function(str){  
-      if(_debug){  
-        try
-        { 
-          if (consoleBackup!=null)
-          {          
-            if (typeof consoleBackup != 'function') {
-              // IE can't call consoleBackup.apply
-              consoleBackup(str);
-            } else if (typeof window.console != 'undefined') { 
-              consoleBackup.apply(window.console,[str]);
-            } else if (typeof console!= 'undefined') {
-              consoleBackup.apply(console,[str]);
-            }
-          }
-        }
-        catch (err)
-        {
-          if (typeof JSON != 'undefined') { 
-            alert("Error reporting '"+str+"':"+JSON.stringify(err));
-          } else if (typeof err.message != 'undefined') {
-            alert("Error reporting '"+str+"':"+err.message);
-          } else {
-            alert("Error reporting '"+str+"':"+err);
-          }
-        }
-      }  
-    }  
-  }else{  
-    var log = window.opera ? window.opera.postError : function(str) {};  
-    window.console = {};  
-    window.console.log = function(str){  
-      if(_debug){  
-        log(str);  
-      }  
-    }  
-  }  
-  
+  /*
+   * Call manually after all scripts are referenced to set up the framework
+   *   to be initialized when the DOM is ready.
+   */
   self.start = function() {
     document.addEventListener(
       "DOMContentLoaded",
@@ -686,9 +665,11 @@ SPIRALCRAFT.webui = (function(self) {
    */
   self.doInit = function() {
     if (SPIRALCRAFT.options.scanDOMOnInit) {
-      console.log("Scanning DOM...");
+      if (console.log.trace)
+        console.log("Scanning DOM...");
       self.processTree(document.documentElement);
-      console.log("Done scanning DOM");
+      if (console.log.trace)
+        console.log("Done scanning DOM");
     }
     if (SPIRALCRAFT.options.enableSessionSync) {
       SPIRALCRAFT.dom.registerBodyOnLoad(function() { SPIRALCRAFT.webui.sessionSync(true); });
@@ -755,7 +736,8 @@ SPIRALCRAFT.webui = (function(self) {
         window.console.log("Error: sessionSync turned off too many times");
       }
     }
-    window.console.log("Sync count = "+_sessionSyncCount);
+    if (console.log.trace)
+      window.console.log("Sync count = "+_sessionSyncCount);
     
   });
 
@@ -1094,37 +1076,50 @@ SPIRALCRAFT.webui = (function(self) {
   //  retrieve the peer object for the node.
   //
   self.activatePeer = function (node) {
-   if (!node.id)
-   { node.id="nid"+node.scnid;
-   } 
-   var peer=$SC(node.id);
-   peer.dataChanged = function() { 
-     self.processTree(this.element()); 
-   };
-   return peer;
+    if (!node.id)
+    { node.id="nid"+node.scnid;
+    } 
+    var peer=$SC(node.id);
+    peer.dataChanged = function() { 
+      self.processTree(this.element()); 
+    };
+    return peer;
   }
   
   /*
    * Initialize specific view logic for this DOM node as specificed by the SC "view"
    *   attribute
    */
-  self.initView = function(node) {
+  self.initView = function(node) 
+  {
     var attrValue=self.getSCAttribute(node,"view").value
     var viewConf;
-    try {
+    try 
+    {
       viewConf=JSON6.parse(attrValue);
-      console.log("View: "+JSON.stringify(viewConf));
-      if (viewConf.type) {
+      if (viewConf.trace) 
+        console.log("View: "+JSON.stringify(viewConf));
+      if (viewConf.contextName)
+      { node.context=viewConf.contextName;
+      }
+      if (viewConf.type) 
+      {
         var peer=self.activatePeer(node);
         var factory=self.viewFactories[viewConf.type];
-        if (factory && typeof factory == 'function') { 
+        if (factory && typeof factory == 'function') 
+        { 
           view=factory(peer,node,viewConf);
           if (view)
           { peer.view=view;
-          } else (console.log("No view returned by factory for "+viewConf.type))
-        } else (console.log(viewConf.type+" is not a function"))
-      } else (console.log("No view type specified"))
-    } catch (e) {
+          } 
+          else (console.log("No view returned by factory for "+viewConf.type))
+        } 
+        else (console.log(viewConf.type+" is not a function"))
+      } 
+      else (console.log("No view type specified"))
+    } 
+    catch (e) 
+    {
       console.log("Caught "+e+" parsing "+attrValue);
       throw e;
     }
@@ -1355,7 +1350,7 @@ SPIRALCRAFT.security = (function(self) {
       }
       
 /*      
-      window.console.log(
+      console.log(
         usernameInput.value+","+
         clearpassInput.value+" = "+
         digestpassInput.value
@@ -1567,5 +1562,48 @@ Sha256.toHexStr = function(n) {
   var s="", v;
   for (var i=7; i>=0; i--) { v = (n>>>(i*4)) & 0xf; s += v.toString(16); }
   return s;
+}
+
+
+/**
+ * Extends a 'class' via prototype chaining
+ * 
+ * @param baseFn The 'base class'. 
+ * @param constructorFn The constructor (instantiated object)
+ * @param bodyFn The body which includes additional functions
+ * @returns
+ */
+function scextend(baseFn,constructorFn,definition)
+{
+  var fntest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+  var _super = baseFn.prototype;
+  var newProto= function() { function fac() {}; fac.prototype=_super; return new fac(); }();
+  newProto.constructor=constructorFn;
+  constructorFn.prototype=newProto;
+  if (console.log.trace)
+    console.log(constructorFn.prototype);
+  for (var name in definition) {
+    // Check if we're overwriting an existing function
+    newProto[name] = typeof definition[name] == "function" && 
+      typeof _super[name] == "function" && fnTest.test(definition[name]) ?
+      (function(name, fn){
+        return function() {
+          var tmp = this._super;
+           
+          // Add a new ._super() method that is the same method
+          // but on the super-class
+          this._super = _super[name];
+           
+          // The method only need to be bound temporarily, so we
+          // remove it when we're done executing
+          var ret = fn.apply(this, arguments);        
+          this._super = tmp;
+           
+          return ret;
+        };
+      })(name, definition[name]) :
+      definition[name];
+  }
+  return constructorFn;
 }
 

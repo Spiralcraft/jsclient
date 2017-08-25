@@ -33,6 +33,11 @@
           </scm:Note>
           <scm:Note>New js file for client-side framework
           </scm:Note>
+          <scm:Note>Use 3rd party console.log polyfill to regain line number reporting
+          </scm:Note>
+          <scm:Note>Add scextend prototype chaining utility function to facilitate
+            inheritance.
+          </scm:Note>
         </notes>
                 
         <path>package/war-js/

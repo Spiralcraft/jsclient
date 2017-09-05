@@ -1,0 +1,34 @@
+<%@doclet
+  tgns:webuic="class:/spiralcraft/servlet/webui/components/"
+  tgns:task="class:/spiralcraft/task/"
+  tgns:servlet="class:/javax/servlet/http/"
+  tgns:j="class:/java/lang/"
+  tgns:h="class:/spiralcraft/servlet/webui/components/html/"
+  tgns:jsclient="context://code/spiralcraft-jsclient/"
+  tgns:webui="class:/spiralcraft/servlet/webui/"
+  tgns:auth="class:/spiralcraft/security/auth/"
+  tgns:fn="class:/spiralcraft/lang/functions/"
+  
+  %> 
+  <%RenderTo target="[h:Page].head"%>
+    <script type="text/javascript" src="/js/spiralcraft-jsclient/spiralcraft.js">
+    </script>
+    <script type="text/javascript" src="/js/spiralcraft-jsclient/app.js">
+    </script>
+    <script type="text/javascript" src="/js/spiralcraft-jsclient/template.js">
+    </script>
+    <%h:Script%>
+      <%.code%>
+        $SC.init(
+          { 
+            scanDOMOnInit: true
+            ,enableSessionSync: true
+            ,syncLocation: "{|[webui:ServiceContext].asyncURL|}"
+            ,sessionExpiration: {|[servlet:HttpSession].maxInactiveInterval*1000|}
+            ,realmName: "{|[*fn:IfBound{`[auth:AuthSession].realmName`}]|}"
+          }
+        );
+      <%/.code%>
+    <%/h:Script%>
+  <%/RenderTo%>
+<%/@doclet%>

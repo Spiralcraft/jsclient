@@ -798,8 +798,17 @@ SPIRALCRAFT.webui = (function(self) {
       if (console.log.trace)
         console.log("Done scanning DOM");
     }
-    if (SPIRALCRAFT.options.enableSessionSync) {
-      SPIRALCRAFT.dom.registerBodyOnLoad(function() { SPIRALCRAFT.webui.sessionSync(true); });
+    if (SPIRALCRAFT.options.syncLocation) 
+    { self.syncLocation=SPIRALCRAFT.options.syncLocation;
+    }
+    if (SPIRALCRAFT.options.sessionExpiration) 
+    { self.sessionExpiration=SPIRALCRAFT.options.sessionExpiration;
+    }
+    if (SPIRALCRAFT.options.realmName) 
+    { SPIRALCRAFT.security.realmName=SPIRALCRAFT.options.realmName;
+    }
+    if (SPIRALCRAFT.options.enableSessionSync) 
+    { SPIRALCRAFT.dom.registerBodyOnLoad(function() { SPIRALCRAFT.webui.sessionSync(true); });
     }
     
   }; 

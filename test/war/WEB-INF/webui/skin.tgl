@@ -9,15 +9,8 @@
 <%h:Page%>
   <%RenderTo target="[h:Page].head"%>
     <link rel="stylesheet" type="text/css" href="/css/main.css"/>
-    <script type="text/javascript" src="/js/spiralcraft-jsclient/spiralcraft.js">
-    </script>
-    <script type="text/javascript" src="/js/spiralcraft-jsclient/app.js">
-    </script>
-    <script type="text/javascript" src="/js/spiralcraft-jsclient/template.js">
-    </script>
   <%/RenderTo%>
-  
-  <%jsclient:spiralcraft-jsclient/%>
+  <%jsclient:js-app/%>
   
   <!-- skin main insert -->
   

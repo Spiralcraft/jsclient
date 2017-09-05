@@ -63,22 +63,24 @@ if (!Function.prototype.bind) {
 // Console-polyfill. MIT license.
 // https://github.com/paulmillr/console-polyfill
 // Make it safe to do console.log() always.
-(function(global) {
-'use strict';
-if (!global.console) {
- global.console = {};
-}
-var con = global.console;
-var prop, method;
-var dummy = function() {};
-var properties = ['memory'];
-var methods = ('assert,clear,count,debug,dir,dirxml,error,exception,group,' +
-  'groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,' +
-  'show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn').split(',');
-while (prop = properties.pop()) if (!con[prop]) con[prop] = {};
-while (method = methods.pop()) if (!con[method]) con[method] = dummy;
-// Using `this` for web workers & supports Browserify / Webpack.
-})(typeof window === 'undefined' ? this : window);
+(function(global) 
+  {
+    'use strict';
+    if (!global.console) 
+    { global.console = {};
+    }
+    var con = global.console;
+    var prop, method;
+    var dummy = function() {};
+    var properties = ['memory'];
+    var methods = ('assert,clear,count,debug,dir,dirxml,error,exception,group,' +
+      'groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,' +
+      'show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn').split(',');
+    while (prop = properties.pop()) if (!con[prop]) con[prop] = {};
+    while (method = methods.pop()) if (!con[method]) con[method] = dummy;
+    // Using `this` for web workers & supports Browserify / Webpack.
+  }
+)(typeof window === 'undefined' ? this : window);
 
 
 // Shorthand reference and API fascade
@@ -102,7 +104,9 @@ $SC.init = function(options) {
 }
 
 
-// Main SPIRALCRAFT namespace
+/**
+ * Core SPIRALCRAFT namespace
+ */
 var SPIRALCRAFT = (function (self) { 
         
   var _private = self._private = self._private || {};
@@ -119,7 +123,115 @@ var SPIRALCRAFT = (function (self) {
       SPIRALCRAFT.dom.hookDocumentReady()
       );
   }; 
-           
+  
+  /**
+   * Extends a 'class' via prototype chaining
+   * 
+   * @param baseFn The 'base class'. 
+   * @param constructorFn The constructor (instantiated object)
+   * @param bodyFn The body of the subclass definition which contains "method"
+   *   functions. In methods that override a superclass method, "this._super()" calls
+   *   the superclass method.
+   * @returns A "class" that can be instantiated via the "new" operator.
+   */
+  self.extend = function(baseFn,constructorFn,definition)
+  {
+    var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+    var _super = baseFn.prototype;
+    if (!definition.class)
+      definition.class=new Object();
+    definition.class.super=_super;
+    var newProto= function() { function fac() {}; fac.prototype=_super; return new fac(); }();
+    newProto.constructor=constructorFn;
+    constructorFn.prototype=newProto;
+    if (console.log.trace)
+      console.log(constructorFn.prototype);
+    for (var name in definition) {
+      // Check if we're overwriting an existing function
+      newProto[name] = typeof definition[name] == "function" && 
+        typeof _super[name] == "function" && fnTest.test(definition[name]) ?
+        (function(name, fn){
+          return function() {
+            var tmp = this._super;
+             
+            // Add a new ._super() method that is the same method
+            // but on the super-class
+            this._super = _super[name];
+             
+            // The method only need to be bound temporarily, so we
+            // remove it when we're done executing
+            var ret = fn.apply(this, arguments);        
+            this._super = tmp;
+             
+            return ret;
+          };
+        })(name, definition[name]) :
+        definition[name]
+    }
+    return constructorFn;
+  }
+  
+  self.forEach = function(iterable,callback)
+  { 
+    for (var i=0;i<iterable.length;i++)
+    { callback(iterable[i]);
+    }
+  }
+  
+  self.isAssignableFrom = function(supertype,object)
+  {
+    var p=supertype;
+    var opc=object.constructor;
+    do
+    {
+      // console.log("comparing",opc,p);
+      if (opc==p)
+        return true;
+      if (!opc.prototype.class)
+      { 
+        // console.log(opc.prototype,"no class");
+        return false;
+      };
+      
+      opc=opc.prototype.class.super.constructor;
+    }
+    while (opc);
+
+  }
+  
+  /**
+   * Abstract base class for Spiralcraft objects
+   */
+  self.SCObject = self.extend
+    (Object
+    ,function() {
+      
+    }
+    ,new function() 
+    {
+      this.class={ name: "spiralcraft.app.SCObject" };
+      
+      this.observe = function(listener) 
+      { 
+        if (!this.listeners)
+        { this.listeners=[];
+        }
+        this.listeners.push(listener);
+      }
+      
+      this.notifyObservers = function(event)
+      { 
+        if (this.listeners)
+        { 
+          SPIRALCRAFT.forEach
+            (this.listeners
+            ,function(listener) { listener.notify(event) }
+            );
+        }
+      }
+    }
+  );  
+  
   return self; 
 }(SPIRALCRAFT || {}));
 
@@ -257,6 +369,21 @@ SPIRALCRAFT.dom = (function(self) {
     }
     return false;
   };
+
+  self.addClass = function(el, name) {
+    if (el.classList)
+      el.classList.add(name)
+    else if (!self.hasClass(el, name)) el.className += " " + name;
+  }
+
+  self.removeClass = function (el, name) {
+    if (el.classList)
+      el.classList.remove(name)
+    else if (self.hasClass(el, name)) {
+      var reg = new RegExp('(\\s|^)' + name + '(\\s|$)')
+      el.className=el.className.replace(reg, ' ')
+    }
+  }
   
   self.makeFormAnchor = function(child,name) {
     if (name==null) {
@@ -816,28 +943,69 @@ SPIRALCRAFT.webui = (function(self) {
     }
     
 
-    //
-    //  Peer.context
-    //
-    //    Find the parent node with the specified context name
-    //      and return the peer object.
-    //
-    this.context = function(name) {
-     var context=null;
-     var node=this.element();
-     do 
-     { 
-       // console.log("finding "+name+" in "+node);
-       if (node.context==name)
-       { return self.activatePeer(node);
-       }
-       node=node.parentNode;
-     }
-     while (node!=null)
+    /*
+     *  Peer.context
+     *
+     *    Find the parent node with the specified context name
+     *      and return the peer object.
+     */
+    this.context = function(name) 
+    {
+      var node=this.element();
+      do 
+      { 
+        // console.log("finding "+name+" in "+node);
+        if (node.context==name)
+        { return self.activatePeer(node);
+        }
+        node=node.parentNode;
+      }
+      while (node!=null)
        
      
     };
     
+    /*
+     *  Peer.contextView
+     *
+     *    Find the parent node with the specified context name or that has a
+     *      view compatible with the specified class
+     *      and return the view object.
+     */
+    this.contextView = function(something) 
+    {
+      var node=this.element();
+      if (typeof something == "function")
+      {
+        do 
+        { 
+          var peer=self.existingPeer(node);
+          // console.log("contextView",something,peer,peer?peer.view:null);
+          // console.log("finding "+name+" in "+node);
+          if (peer && peer.view && SPIRALCRAFT.isAssignableFrom(something,peer.view))
+          { return peer.view;
+          }
+          node=node.parentNode;
+        }
+        while (node!=null)
+        
+      }
+      else
+      {
+        var name=something;
+        do 
+        { 
+          var peer=self.existingPeer(node);
+          // console.log("finding ",name," in ",node,peer);
+          if (peer && peer.view && node.context==name)
+          { return peer.view;
+          }
+          node=node.parentNode;
+        }
+        while (node!=null)
+      }  
+     
+    };
   }
 
   
@@ -865,6 +1033,16 @@ SPIRALCRAFT.webui = (function(self) {
     };
     
   };
+  
+  /**
+   * Return an existing peer for a node
+   */
+  self.existingPeer = function (something)
+  {
+    if (something.id)
+    { return self.getPeer(something.id);
+    }
+  }
   
   //Shorthand for getting the SPIRALCRAFT.webui peer JS object for a dom
   //element.
@@ -1096,7 +1274,8 @@ SPIRALCRAFT.webui = (function(self) {
     var viewConf;
     try 
     {
-      viewConf=JSON6.parse(attrValue);
+      var peer=self.activatePeer(node);
+      viewConf=new Function("return "+attrValue.trim()).call(peer);
       if (viewConf.trace) 
         console.log("View: "+JSON.stringify(viewConf));
       if (viewConf.contextName)
@@ -1104,7 +1283,6 @@ SPIRALCRAFT.webui = (function(self) {
       }
       if (viewConf.type) 
       {
-        var peer=self.activatePeer(node);
         var factory=self.viewFactories[viewConf.type];
         if (factory && typeof factory == 'function') 
         { 
@@ -1112,11 +1290,11 @@ SPIRALCRAFT.webui = (function(self) {
           if (view)
           { peer.view=view;
           } 
-          else (console.log("No view returned by factory for "+viewConf.type))
+          else (console.log("No view returned by factory for "+viewConf.type));
         } 
-        else (console.log(viewConf.type+" is not a function"))
+        else (console.log("View type '"+viewConf.type+"' is unknown"));
       } 
-      else (console.log("No view type specified"))
+      else (console.log("No view type specified"));
     } 
     catch (e) 
     {
@@ -1151,6 +1329,15 @@ SPIRALCRAFT.webui = (function(self) {
    { self.processTree(children[i]);
    }
   
+   var peer=self.existingPeer(node);
+   if (peer)
+   { 
+     if (peer.view)
+     { 
+       // console.log("Calling subtreeProcessed",node,peer,peer.view);
+       peer.view.subtreeProcessed();
+     }
+   }
    
   };
   
@@ -1161,8 +1348,11 @@ SPIRALCRAFT.webui = (function(self) {
   // If a node has a "sc-context" attribute, the value will be used as the
   //   context name for reference from descendants in the DOM tree
   //
-  // If a SCRIPT with a type "sc-context" is found, the SCRIPT will pe executed
+  // If a SCRIPT with a type "sc-context" is found, the SCRIPT will be executed
   //   as new function in the scope of its parent's JS peer object. 
+  //
+  // If a SCRIPT with a type "sc-template" is found, the SCRIPT will be parsed
+  //   as template and stored in the "templates" array property of the JS peer object 
   //
   // If a node has a "sc-bind" attribute, the value represents the data model
   //   that the node communicates with
@@ -1186,6 +1376,18 @@ SPIRALCRAFT.webui = (function(self) {
        { 
          var peer=self.activatePeer(node.parentElement);
          new Function(node.textContent).call(peer);
+       }
+       if (node.tagName=="SCRIPT" && node.type=="sc-template")
+       { 
+         var peer=self.activatePeer(node.parentElement);
+         var configStr=self.getSCAttribute(node,"config")?self.getSCAttribute(node,"config").value:null;
+         var config=configStr?new Function("return "+configStr.trim()).call(this):null;
+         if (SPIRALCRAFT.template)
+         { 
+           if (!peer.templates) peer.templates=[];
+           peer.templates.push
+             (SPIRALCRAFT.template.parse(node.textContent,config));
+         }
        }
      }
      break;
@@ -1565,45 +1767,4 @@ Sha256.toHexStr = function(n) {
 }
 
 
-/**
- * Extends a 'class' via prototype chaining
- * 
- * @param baseFn The 'base class'. 
- * @param constructorFn The constructor (instantiated object)
- * @param bodyFn The body which includes additional functions
- * @returns
- */
-function scextend(baseFn,constructorFn,definition)
-{
-  var fntest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
-  var _super = baseFn.prototype;
-  var newProto= function() { function fac() {}; fac.prototype=_super; return new fac(); }();
-  newProto.constructor=constructorFn;
-  constructorFn.prototype=newProto;
-  if (console.log.trace)
-    console.log(constructorFn.prototype);
-  for (var name in definition) {
-    // Check if we're overwriting an existing function
-    newProto[name] = typeof definition[name] == "function" && 
-      typeof _super[name] == "function" && fnTest.test(definition[name]) ?
-      (function(name, fn){
-        return function() {
-          var tmp = this._super;
-           
-          // Add a new ._super() method that is the same method
-          // but on the super-class
-          this._super = _super[name];
-           
-          // The method only need to be bound temporarily, so we
-          // remove it when we're done executing
-          var ret = fn.apply(this, arguments);        
-          this._super = tmp;
-           
-          return ret;
-        };
-      })(name, definition[name]) :
-      definition[name];
-  }
-  return constructorFn;
-}
 

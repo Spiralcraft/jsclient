@@ -18,14 +18,78 @@
     <script type="html/x-sc-template" data-name="mytemplate">
       <div>this is a template</div>
     </script>
+    <link 
   <%/RenderTo%>
   
   <div data-sc-view='
-   { type: "router"
-     ,contextName: "mainRouter" 
+    { type: "router"
+     ,contextName: "mainRouter"
+     ,stateMachine:
+       {
+         states:
+           [
+             { name: "one"
+               ,viewName: "viewOne"
+               ,actions: 
+                 { next: { nextState:"two" }
+                 , back: { nextState:"three" }
+                 }
+             },
+             { name: "two"
+               ,viewName: "viewTwo"
+               ,actions: 
+                 { next: { nextState:"three" }
+                 , back: { nextState:"one" }
+                 }
+             },
+             { name: "three"
+               ,viewName: "viewThree"
+               ,actions: 
+                 { next: { nextState:"one" }
+                 , back: { nextState:"two" }
+                 }
+             }
+           ]
+       }
    }'
-   >
-  
+   
+    >
+    <div class="slide-controller">
+		  <div class="nav">
+			  <div class="prev" 
+			    data-sc-view='
+			      { type: "clickable"
+			      , onClick: function() { this.contextView("mainRouter").doAction("back") }
+			      }'
+			    >&#x2039;
+			  </div>
+			  <div class="next" 
+			    data-sc-view='
+			      { type: "clickable"
+			      , onClick: function() { this.contextView("mainRouter").doAction("next") }
+			      }'
+			    >&#x203a;
+			  </div>
+		  </div>      
+      <ul class="nav-dots" 
+        data-sc-view='
+          { type: "selector"
+          , target: function() { return this.contextView("mainRouter") }
+          , options: function() { return this.target.stateMachine.states }
+          , selected: function() { return this.target.stateMachine.selectedState }
+          , keyFn: function(data) { return data.name }
+          , select: function(state) { console.log("select",state), this.target.selectState(state.name) }
+          , trace: true
+          }'
+        >
+        <script type="sc-template" data-sc-config='{ paramName: "data" }'>
+          <li class="nav-dot" data-sc-view='{ type:"selectorItem", trace:true}' value="${data.name}">
+            &nbsp;
+          </li>
+        </script>
+      </ul>
+    </div>
+    
     <div data-sc-view='
       {
         type: "routedView"

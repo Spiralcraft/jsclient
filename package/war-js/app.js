@@ -406,7 +406,8 @@ SPIRALCRAFT.app = (function(self) {
         
         this.registerItem = function(selectorItem)
         {
-          console.log("registering",selectorItem," for ",this.iteratingItem);
+          if (this.conf.trace)
+            console.log("registering",selectorItem," for ",this.iteratingItem);
           selectorItem.setData(this.iteratingItem);
           this.selectorMap[this.conf.keyFn(this.iteratingItem)]=selectorItem;
           
@@ -424,14 +425,18 @@ SPIRALCRAFT.app = (function(self) {
             var unselectItem = this.selected?this.selectorMap[this.conf.keyFn(this.selected)]:null;
             if (unselectItem)
             { 
-              console.log("Unselecting ",unselectItem,this.selected)
+              if (this.conf.trace) 
+                console.log("Unselecting ",unselectItem,this.selected);
+
               unselectItem.selectionChanged(false);
             }
             
             var selectItem=selected?this.selectorMap[this.conf.keyFn(selected)]:null;
             if (selectItem)
             { 
-              console.log("Selecting ",selectItem,selected)
+              if (this.conf.trace)
+                console.log("Selecting ",selectItem,selected);
+              
               selectItem.selectionChanged(true);
             }
             this.selected=selected;

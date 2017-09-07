@@ -1,0 +1,40 @@
+<%@doclet
+  contextX='{ viewSelectorName:="" }'
+  tgns:jsc="context://code/spiralcraft-jsclient/"
+  %>
+  <div class="slide-controller">
+    <div class="nav">
+      <div class="prev" 
+        data-sc-view='
+          { type: "clickable"
+          , onClick: function() { this.contextView("<%=[jsc:slide-controller].viewSelectorName/%>").doAction("back") }
+          }'
+        >&#x2039;
+      </div>
+      <div class="next" 
+        data-sc-view='
+          { type: "clickable"
+          , onClick: function() { this.contextView("<%=[jsc:slide-controller].viewSelectorName/%>").doAction("next") }
+          }'
+        >&#x203a;
+      </div>
+    </div>      
+    <ul class="nav-dots" 
+      data-sc-view='
+        { type: "selector"
+        , target: function() { return this.contextView("<%=[jsc:slide-controller].viewSelectorName/%>") }
+        , options: function() { return this.target.stateMachine.states }
+        , selected: function() { return this.target.stateMachine.selectedState }
+        , keyFn: function(data) { return data.name }
+        , select: function(state) { this.target.selectState(state.name) }
+        , trace: false
+        }'
+      >
+      <script type="sc-template" data-sc-config='{ paramName: "data" }'>
+        <li class="nav-dot" data-sc-view='{ type:"selectorItem", trace:false}' value="${data.name}">
+          &nbsp;
+        </li>
+      </script>
+    </ul>
+  </div>
+<%/@doclet%>

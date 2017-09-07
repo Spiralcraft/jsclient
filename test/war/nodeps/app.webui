@@ -1,6 +1,7 @@
 <%r:skin
   tgns:r="context://code/"
   tgns:h="class:/spiralcraft/servlet/webui/components/html/"
+  tgns:jsc="context://code/spiralcraft-jsclient/"
   %>
   <%RenderTo target="[h:Page].head"%>
     <script type="text/javascript" src="test.js"></script>
@@ -8,7 +9,7 @@
     <script type="html/x-sc-template" data-name="mytemplate">
       <div>this is a template</div>
     </script>
-    <link 
+    <link rel="stylesheet" type="text/css" href="/css/spiralcraft-jsclient/slide-controller.css"/>
   <%/RenderTo%>
   
   <div data-sc-view='
@@ -44,41 +45,7 @@
    }'
    
     >
-    <div class="slide-controller">
-		  <div class="nav">
-			  <div class="prev" 
-			    data-sc-view='
-			      { type: "clickable"
-			      , onClick: function() { this.contextView("mainRouter").doAction("back") }
-			      }'
-			    >&#x2039;
-			  </div>
-			  <div class="next" 
-			    data-sc-view='
-			      { type: "clickable"
-			      , onClick: function() { this.contextView("mainRouter").doAction("next") }
-			      }'
-			    >&#x203a;
-			  </div>
-		  </div>      
-      <ul class="nav-dots" 
-        data-sc-view='
-          { type: "selector"
-          , target: function() { return this.contextView("mainRouter") }
-          , options: function() { return this.target.stateMachine.states }
-          , selected: function() { return this.target.stateMachine.selectedState }
-          , keyFn: function(data) { return data.name }
-          , select: function(state) { this.target.selectState(state.name) }
-          , trace: false
-          }'
-        >
-        <script type="sc-template" data-sc-config='{ paramName: "data" }'>
-          <li class="nav-dot" data-sc-view='{ type:"selectorItem", trace:false}' value="${data.name}">
-            &nbsp;
-          </li>
-        </script>
-      </ul>
-    </div>
+    <%jsc:slide-controller viewSelectorName="mainRouter"/%>
     
     <div data-sc-view='
       {

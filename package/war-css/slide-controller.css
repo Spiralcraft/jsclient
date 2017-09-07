@@ -57,8 +57,10 @@
 
 .slide-controller .nav div.prev {
   float: left;
+  margin-right: auto;
 }
 .slide-controller .nav div.next {
   float: right;
+  margin-left: auto;
 }
 

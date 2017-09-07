@@ -40,6 +40,8 @@
           <scm:Note>Add templating engine to generate markup / component expansions
             from data
           </scm:Note>
+          <scm:Note>Make slide-controller a reusable component
+          </scm:Note>
         </notes>
                 
         <path>package/war-js/

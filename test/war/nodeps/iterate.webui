@@ -1,0 +1,17 @@
+<%r:skin
+  tgns:r="context://code/"
+  tgns:h="class:/spiralcraft/servlet/webui/components/html/"
+  tgns:jsc="context://code/spiralcraft-jsclient/"
+  %>
+
+  <div data-sc-view='
+    { type: "iterator"
+    , iterate: function() { return ["one","two","three"]; }
+    , trace: true
+    }
+    '>
+    <script type="sc-template" data-sc-config='{ paramName: "data" }'>
+      <li>${this.index}. ${data}</li>
+    </script>
+  </div>
+<%/r:skin%>

@@ -10,7 +10,7 @@
   <%RenderTo target="[h:Page].head"%>
     <link rel="stylesheet" type="text/css" href="/css/main.css"/>
   <%/RenderTo%>
-  <%jsclient:js-app/%>
+  <%jsclient:js-app options='{ traceProcessTree: true}'/%>
   
   <!-- skin main insert -->
   

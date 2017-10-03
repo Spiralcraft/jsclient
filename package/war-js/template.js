@@ -111,8 +111,9 @@ SPIRALCRAFT.template = (function(self) {
       }
       else if (["}",")","]"].indexOf(char)>-1)
       {
-        if (esc!=char)
-        { throw new Exception("Unbalanced parens/brackets '"+char+"'");
+        var test=["{","(","["][ ["}",")","]"].indexOf(char) ];
+        if (esc!=test)
+        { throw new SPIRALCRAFT.Exception("Unbalanced parens/brackets '"+char+"'");
         }
         else
         { escapes.pop();

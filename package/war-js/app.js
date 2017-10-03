@@ -317,7 +317,10 @@ SPIRALCRAFT.app = (function(self) {
   self.Iterator = SPIRALCRAFT.extend(
     self.Container
     ,function(peer,node,conf) 
-    { self.Container.call(this,peer,node,conf);
+    { 
+      self.Container.call(this,peer,node,conf);
+      this.index=null;
+      this.iteratingItem=null;
     }
     ,new function() 
     {
@@ -328,20 +331,44 @@ SPIRALCRAFT.app = (function(self) {
       this.subtreeProcessed = function()
       {
         this._super();
+        var data;
+        
         if (this.peer.iterate)
+        { data=this.peer.iterate();
+        }
+        else if (this.conf.iterate)
+        { data=this.conf.iterate();
+        }
+        
+        if (this.conf.trace) console.log("Iterate: "+data);
+        
+        if (data)
         {
-          var data=this.peer.iterate();
-          if (this.conf.trace) console.log(data);
           var node=this.peer.element();
+          this.index=0;
           SPIRALCRAFT.forEach
             (data
             ,function(data) 
               {  
-                node.insertAdjacentHTML("beforeend",this.peer.render(data));
-                SPIRALCRAFT.webui.processTree(node.children[node.children.length-1]);              
+                this.iteratingItem = data;
+                
+                var html="";
+                if (this.peer.render)
+                { html=this.peer.render(data);
+                }
+                else if (this.peer.templates)
+                {
+                  for (var i=0;i<this.peer.templates.length;i++)
+                  { html+=this.peer.templates[i].render(this,data);
+                  }
+                }
+                node.insertAdjacentHTML("beforeend",html);
+                SPIRALCRAFT.webui.processTree(node.children[node.children.length-1]);
+                this.index++;
               }.bind(this)
             );
-            
+          this.index=null;
+          this.iteratingItem=null;
         }
       }
 

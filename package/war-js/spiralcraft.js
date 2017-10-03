@@ -200,6 +200,18 @@ var SPIRALCRAFT = (function (self) {
   }
   
   /**
+   * Add all own properties in src to target 
+   */
+  self.copy = function(target,src)
+  {
+    if (!target) target={};
+    for (var key in src)
+    { if (src.hasOwnProperty(key)) target[key] = src[key];
+    }
+    return target;
+  }
+    
+  /**
    * Abstract base class for Spiralcraft objects
    */
   self.SCObject = self.extend
@@ -231,6 +243,10 @@ var SPIRALCRAFT = (function (self) {
       }
     }
   );  
+  
+  self.Exception = function(message)
+  { this.message=message;
+  }
   
   return self; 
 }(SPIRALCRAFT || {}));
@@ -1343,7 +1359,9 @@ SPIRALCRAFT.webui = (function(self) {
    { 
      if (peer.view)
      { 
-       // console.log("Calling subtreeProcessed",node,peer,peer.view);
+       if (SPIRALCRAFT.options.traceProcessTree)
+       { console.log("Calling subtreeProcessed",node,peer,peer.view);
+       }
        peer.view.subtreeProcessed();
      }
    }

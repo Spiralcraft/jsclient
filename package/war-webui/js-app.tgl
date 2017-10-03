@@ -8,6 +8,7 @@
   tgns:webui="class:/spiralcraft/servlet/webui/"
   tgns:auth="class:/spiralcraft/security/auth/"
   tgns:fn="class:/spiralcraft/lang/functions/"
+  contextX='{ options:="{}" }'
   
   %> 
   <%RenderTo target="[h:Page].head"%>
@@ -17,18 +18,22 @@
     </script>
     <script type="text/javascript" src="/js/spiralcraft-jsclient/template.js">
     </script>
-    <%h:Script%>
-      <%.code%>
-        $SC.init(
-          { 
-            scanDOMOnInit: true
-            ,enableSessionSync: true
-            ,syncLocation: "{|[webui:ServiceContext].asyncURL|}"
-            ,sessionExpiration: {|[servlet:HttpSession].maxInactiveInterval*1000|}
-            ,realmName: "{|[*fn:IfBound{`[auth:AuthSession].realmName`}]|}"
-          }
-        );
-      <%/.code%>
-    <%/h:Script%>
+    <script type="text/javascript">
+      (function() 
+        {
+          var _SCOptions=
+            { 
+              scanDOMOnInit: true
+              ,enableSessionSync: true
+              ,syncLocation: "<%=[webui:ServiceContext].asyncURL/%>"
+              ,sessionExpiration: <%=[servlet:HttpSession].maxInactiveInterval*1000/%>
+              ,realmName: "<%=[*fn:IfBound{`[auth:AuthSession].realmName`}]/%>"
+            };
+          _SCOptions=SPIRALCRAFT.copy(_SCOptions,<%=[jsclient:js-app].options/%>);
+          
+          $SC.init(_SCOptions);
+        }
+       )();
+    </script>
   <%/RenderTo%>
 <%/@doclet%>

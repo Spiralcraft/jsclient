@@ -20,6 +20,36 @@
         </revision>
         
         <notes>
+          <scm:Note>Usability updates for Iterator component 
+          </scm:Note>
+          <scm:Note>Fix bracket matching logic in Template component 
+          </scm:Note>
+          <scm:Note>Support passing additional options to js client when using
+            the js-app webui component.
+          </scm:Note>
+        </notes>
+        
+        <path>package/
+        </path>
+        
+        <resources>
+          <URI>war-js/app.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+          <URI>war-js/template.js
+          </URI>
+          <URI>war-webui/js-app.tgl
+          </URI>
+        </resources>
+        
+
+      <scm:Change>
+      
+        <revision>-dev18
+        </revision>
+        
+        <notes>
           <scm:Note>Various View components to implement a basic state-machine 
             driven router that can page between multiple views in an an app.
           </scm:Note>

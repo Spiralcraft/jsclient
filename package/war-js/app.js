@@ -103,6 +103,7 @@ SPIRALCRAFT.app = (function(self) {
       this.conf=conf;
       if (this.conf.trace) 
         console.log("Constructing "+(typeof this)+JSON.stringify(this));
+      if (this.conf.init) this.conf.init.call(this);
     }
     ,new function() 
     { 

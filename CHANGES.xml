@@ -13,10 +13,38 @@
     
     <detail>
     
+      <scm:Change>
+      
+        <revision>-dev20
+        </revision>
+        
+        <notes>
+          <scm:Note>Support Iterator nesting
+          </scm:Note>
+          <scm:Note>Support referenced templates.
+          </scm:Note>
+          <scm:Note>Support target zone for iteration rendering via comments
+          </scm:Note>
+          <scm:Note>Template default data parameter is "_" ie. "_.name"
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>app.js
+          </URI>
+          <URI>spiralcraft.js
+          </URI>
+          <URI>template.js
+          </URI>
+        </resources>
+      </scm:Change>  
     
       <scm:Change>
       
-        <revision>-dev18
+        <revision>-dev19
         </revision>
         
         <notes>
@@ -42,7 +70,7 @@
           <URI>war-webui/js-app.tgl
           </URI>
         </resources>
-        
+      </scm:Change>  
 
       <scm:Change>
       

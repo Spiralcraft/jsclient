@@ -415,6 +415,9 @@ SPIRALCRAFT.dom = (function(self) {
     return false;
   };
   
+  /*
+   * SPIRALCRAFT.dom.hasClass
+   */
   self.hasClass = function(node,name) {
     if (typeof node.classList != 'undefined') {
       return node.classList.contains(name);
@@ -425,12 +428,18 @@ SPIRALCRAFT.dom = (function(self) {
     return false;
   };
 
+  /*
+   * SPIRALCRAFT.dom.addClass
+   */
   self.addClass = function(el, name) {
     if (el.classList)
       el.classList.add(name)
     else if (!self.hasClass(el, name)) el.className += " " + name;
   }
 
+  /*
+   * SPIRALCRAFT.dom.removeClass
+   */
   self.removeClass = function (el, name) {
     if (el.classList)
       el.classList.remove(name)
@@ -1004,6 +1013,24 @@ SPIRALCRAFT.webui = (function(self) {
     this.attachHandler = function(event,fn) {
       var element=this.element();
       element[event]=SPIRALCRAFT.dom.chainEvent(element[event],fn);
+    }
+    
+    /*
+     * Peer.addClass
+     * 
+     *   Add a css class to this peer's element
+     */
+    this.addClass = function(name)
+    { return SPIRALCRAFT.dom.addClass(this.element(),name);
+    }
+    
+    /*
+     * Peer.removeClass
+     * 
+     *   Remove a css class from this peer's element
+     */
+    this.removeClass = function(name)
+    { return SPIRALCRAFT.dom.removeClass(this.element(),name);
     }
     
     /*

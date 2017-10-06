@@ -13,5 +13,7 @@
     <script type="sc-template" data-sc-config='{ paramName: "data" }'>
       <li>${this.index}. ${data}</li>
     </script>
+    <!--SC-END-->
+    <div>Something later</div>
   </div>
 <%/r:skin%>

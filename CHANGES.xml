@@ -27,6 +27,10 @@
           </scm:Note>
           <scm:Note>Template default data parameter is "_" ie. "_.name"
           </scm:Note>
+          <scm:Note>Added view initializer
+          </scm:Note>
+          <scm:Note>Methods in Peer object to add and remove element css classes
+          </scm:Note>
         </notes>
         
         <path>package/war-js

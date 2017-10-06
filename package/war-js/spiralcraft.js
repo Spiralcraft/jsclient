@@ -363,6 +363,45 @@ SPIRALCRAFT.dom = (function(self) {
     return null;
   };
   
+  /*
+   * SPIRALCRAFT.dome.nodesFromHTML
+   * 
+   * Return a set of nodes given HTML text
+   */
+  self.nodesFromHTML = function(html)
+  {
+    var template=document.createElement("template");
+    template.innerHTML=html;
+    return template.content.children;
+  }
+  /* 
+   * SPIRALCRAFT.dom.getComments
+   * 
+   * Return the children of this node that are comments optionally beginning with
+   *   the specific text
+   */
+  self.getComments = function(node,prefix)
+  {
+    var children=node.childNodes;
+    var ret=[];
+    for (var i=0;i<children.length;i++)
+    {
+      if (children[i].nodeType==8)
+      {
+        if (!prefix || children[i].nodeValue.startsWith(prefix))
+        { ret.push(node);
+        }
+      }
+    }
+    return ret;
+  }
+  
+  /* 
+   * SPIRALCRAFT.dom.isDescribedBy
+   * 
+   * Determine whether a node is described by the specifid
+   *   selector.
+   */
   self.isDescribedBy = function(node,name) {
     if (name.startsWith("."))
     { return SPIRALCRAFT.dom.hasClass(node,name.substring(1));
@@ -967,7 +1006,32 @@ SPIRALCRAFT.webui = (function(self) {
       element[event]=SPIRALCRAFT.dom.chainEvent(element[event],fn);
     }
     
-
+    /*
+     *  Peer.findTemplate
+     *  
+     *    Find the template with the given name searching from the current node 
+     *      first and delegating to ancestors.
+     */
+    this.findTemplate = function(name)
+    {
+      var node=this.element();
+      do
+      {
+        var peer=self.existingPeer(node);
+        if (peer && peer.templates)
+        {
+          for (var i=0;i<peer.templates.length;i++)
+          {
+            if (peer.templates[i].name==name)
+            { return peer.templates[i];
+            }
+          }
+        }
+        node=node.parentNode;
+      }
+      while (node!=null)
+    }
+    
     /*
      *  Peer.context
      *

@@ -312,7 +312,10 @@ SPIRALCRAFT.app = (function(self) {
   /*
    * Iterator
    * 
-   * Iterates source data for rendering
+   * Iterates source data for rendering.
+   * 
+   * The conf object contains an "iterate" function which will be called with
+   *   "this" = to the this view to provide access to the component tree. 
    */
   self.Iterator = SPIRALCRAFT.extend(
     self.Container
@@ -337,7 +340,7 @@ SPIRALCRAFT.app = (function(self) {
         { data=this.peer.iterate();
         }
         else if (this.conf.iterate)
-        { data=this.conf.iterate();
+        { data=this.conf.iterate.call(this);
         }
         
         if (this.conf.trace) console.log("Iterate: "+data);
@@ -345,6 +348,41 @@ SPIRALCRAFT.app = (function(self) {
         if (data)
         {
           var node=this.peer.element();
+          var children=node.childNodes;
+          var start;
+          var end;
+          var startIndex;
+          var endIndex;
+          for (var i=0;i<children.length;i++)
+          { 
+            var child=children[i];
+            if (child.nodeType==8)
+            {
+              if (child.nodeValue=="SC-START")
+              { 
+                start=child;
+                startIndex=i;
+              }
+              if (child.nodeValue=="SC-END")
+              { 
+                end=child;
+                endIndex=i;
+              }
+            }
+          }
+          if (!end)
+          {
+            end=document.createComment("SC-END");
+            endIndex=children.length;
+            node.appendChild(end);
+          }
+          if (!start)
+          { 
+            start=document.createComment("SC-START");
+            startIndex=endIndex;
+            node.insertBefore(start,end);
+          }
+
           this.index=0;
           SPIRALCRAFT.forEach
             (data
@@ -359,11 +397,39 @@ SPIRALCRAFT.app = (function(self) {
                 else if (this.peer.templates)
                 {
                   for (var i=0;i<this.peer.templates.length;i++)
-                  { html+=this.peer.templates[i].render(this,data);
+                  { 
+                    var template=this.peer.templates[i];
+                    if (template.name==null)
+                      html+=template.render(this,data);
                   }
                 }
-                node.insertAdjacentHTML("beforeend",html);
-                SPIRALCRAFT.webui.processTree(node.children[node.children.length-1]);
+                else if (this.conf.templateRef)
+                { 
+                  var template=this.peer.findTemplate(this.conf.templateRef);
+                  if (template)
+                  { html+=template.render(this,data);
+                  }
+                }
+                if (html.length>0)
+                { 
+                  var nodes=SPIRALCRAFT.dom.nodesFromHTML(html);
+                  if (this.conf.trace)
+                  { console.log("html ",html);
+                  }
+                  for (var i=0;i<nodes.length;i++)
+                  {
+                    var newchild=nodes[i];
+                    if (this.conf.trace)
+                    { console.log("node ",newchild);
+                    }
+                    newchild=node.insertBefore(newchild,end);
+                    if (newchild)
+                    { SPIRALCRAFT.webui.processTree(newchild);
+                    }
+                    endIndex++;
+                  }
+
+                }
                 this.index++;
               }.bind(this)
             );
@@ -407,6 +473,7 @@ SPIRALCRAFT.app = (function(self) {
           
           if (this.conf.trace) console.log(data);
           var node=this.peer.element();
+          
           SPIRALCRAFT.forEach
             (data
             ,function(data) 
@@ -423,6 +490,7 @@ SPIRALCRAFT.app = (function(self) {
                   }
                 }
                 node.insertAdjacentHTML("beforeend",html);
+                
                 SPIRALCRAFT.webui.processTree(node.children[node.children.length-1]);              
               }.bind(this)
             );

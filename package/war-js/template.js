@@ -10,9 +10,11 @@ SPIRALCRAFT.template = (function(self) {
    */
   self.Template = SPIRALCRAFT.extend
     (Object
-    ,function(interpolation) 
+    ,function(interpolation,config) 
     {
       this.interpolation=interpolation;
+      this.config=config || {};
+      this.name=this.config.name;
     }
     ,new function() 
     {
@@ -62,7 +64,7 @@ SPIRALCRAFT.template = (function(self) {
     }
     while (pos<templateString.length);
     
-    return new self.Template(interpolation);
+    return new self.Template(interpolation,config);
     
   };
 
@@ -82,7 +84,7 @@ SPIRALCRAFT.template = (function(self) {
         { interpolation.push(new Function(config.paramName,"return "+code));
         }
         else
-        { interpolation.push(new Function("return "+code));
+        { interpolation.push(new Function("_","return "+code));
         }
         return i+1;
       }

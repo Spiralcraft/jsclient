@@ -136,28 +136,6 @@ SPIRALCRAFT.app = (function(self) {
       this.class={ name: "spiralcraft.app.Container" };
       
       /*
-       * Resolve an ancestral view with the given name
-       */
-      this.resolveContextView = function(name) 
-      {
-        var contextPeer=this.peer.context(name);
-        if (contextPeer)
-        {
-          if (this.conf.trace) 
-            console.log(contextPeer);
-          if (contextPeer.view)
-          { return contextPeer.view;
-          }
-          else
-          { console.log("No view for peer "+contextPeer.nid+" referred to by "+this.prettyId());
-          }
-        }
-        else
-        { console.log("Could not find context '"+name+"' from "+this.prettyId());
-        }
-      }
-
-      /*
        * Compose an id for logging / debugging that combines the configured name
        *   and the peer id.
        */
@@ -295,13 +273,29 @@ SPIRALCRAFT.app = (function(self) {
       
       if (conf.router)
       {
-        var contextView=this.resolveContextView(conf.router);
-        if (this.conf.trace) 
-          console.log(contextView);
-        contextView.registerView(conf.name ? conf.name : peer.id,peer);
+        var contextView=this.contextView(conf.router);
+        if (contextView)
+        {
+          if (this.conf.trace) 
+            console.log(contextView);
+          contextView.registerView(conf.name ? conf.name : peer.id,peer);
+        }
+        else
+        { console.log("Specified router '"+conf.router+"' not found "+prettyId());
+        }
       }
       else
-      { console.log("No router specified for "+prettyId());
+      { 
+        var contextView=this.contextView(self.Router);
+        if (contextView)
+        {
+          if (this.conf.trace) 
+            console.log(contextView);
+          contextView.registerView(conf.name ? conf.name : peer.id,peer);
+        }
+        else
+        { console.log("No router specified or found for "+prettyId());
+        }
       }
     }
     ,function() {}

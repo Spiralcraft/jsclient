@@ -26,7 +26,7 @@
         , options: function() { return this.target.stateMachine.states }
         , selected: function() { return this.target.stateMachine.selectedState }
         , keyFn: function(data) { return data.name }
-        , select: function(state) { this.target.selectState(state.name) }
+        , select: function(state) { this.target.navTo(state.name) }
         , trace: false
         }'
       >

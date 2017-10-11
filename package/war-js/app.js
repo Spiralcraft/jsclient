@@ -2,7 +2,7 @@
  * Toolkit for UI logic for client-side interaction
  */
 SPIRALCRAFT.app = (function(self) {
-
+  var SC=SPIRALCRAFT;
 
   
   self.State = SPIRALCRAFT.extend
@@ -179,7 +179,8 @@ SPIRALCRAFT.app = (function(self) {
         /**
          * Called to register a View to be controlled by this ViewSelector
          */
-        this.registerView = function(name,peer) {
+        this.registerView = function(name,peer)
+        {
           var entry={};
           var element=peer.element();
           entry.name=name;
@@ -243,13 +244,54 @@ SPIRALCRAFT.app = (function(self) {
    *   logic, and/or URL fragments based on a state machine.
    */
   self.Router = SPIRALCRAFT.extend 
-    (
-    self.ViewSelector
-        ,function(peer,node,conf) 
-        {
-          self.ViewSelector.call(this,peer,node,conf);
+    (self.ViewSelector
+    ,function(peer,node,conf) 
+      {
+        self.ViewSelector.call(this,peer,node,conf);
+        
+        
+        if (!this.parent)
+        { 
+          this.lastHash=window.location.hash.substring(1);
+          this.initialHash=this.lastHash;
+          this.initialHashProcessed=false;
+          SC.dom.registerWindowOnHashChange(this.hashChangeListener.bind(this));
         }
-        ,new function() {}
+        // XXX Only do this is we're the top router reading the URL state
+      }
+    ,new function()
+      {
+        this.subtreeProcessed = function()
+        {
+          this._super();
+          if (this.initialHash && !this.initialHashProcessed)
+          { this.navTo(this.initialHash);
+          }
+          this.updateFromStateMachine();
+          if (this.conf.trace)
+            console.log("Router-sp");
+        } 
+        
+        /*
+         * Navigate to the specfied hash
+         */
+        this.navTo = function(hash)
+        { 
+          this.selectState(hash);
+          window.history.pushState(undefined,undefined,"#"+hash);
+        }
+        
+        this.hashChangeListener = function(event)
+        {
+          var newHash=SC.uri.getFragment(event.newURL);
+          if (newHash != this.lastHash)
+          { 
+            console.log("Hash changed from "+this.lastHash+" to "+newHash,event);
+            this.selectState(newHash);
+            this.lastHash=newHash;
+          }
+        }
+      }
     );
   
   SPIRALCRAFT.webui.registerView

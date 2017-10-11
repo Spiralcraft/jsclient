@@ -344,13 +344,18 @@ SPIRALCRAFT.dom = (function(self) {
       );
   }
   
-  self.registerWindowOnResize = function(fn) {
+  self.registerWindowOnResize = function(fn) 
+  {
     var lastFn = self.windowOnResize;
     self.windowOnResize = function() { 
       lastFn();
       fn();
     };
   };
+  
+  self.registerWindowOnHashChange = function(fn)
+  { window.addEventListener("hashchange",fn);    
+  }
   
   self.getParent = function(child,name) {
     while (child.parentNode)
@@ -779,14 +784,29 @@ SPIRALCRAFT.uri = (function(self) {
     return uri;
   });
 
-  self.setFragment = function(uri,fragment) {
+  /*
+   * Replace the fragment portion of a URI
+   */
+  self.setFragment = function(uri,fragment) 
+  {
     
-    if (uri.indexOf("#")>0) {
+    if (uri.indexOf("#")>-1)
+    {
       uri=uri.substring(0,uri.indexOf("#"));
     }
     return uri+"#"+fragment;
   };
   
+  /*
+   * Get the fragment portion of a URI
+   */
+  self.getFragment = function(uri)
+  {
+    var i=uri.indexOf("#");
+    if (i>-1)
+    { return uri.substring(i+1);
+    }
+  }
   
   self.removeQueryParameter = function (uri, parameter) {
     //prefer to use l.search if you have a location/link object

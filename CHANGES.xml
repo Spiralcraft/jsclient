@@ -33,15 +33,17 @@
           </scm:Note>
         </notes>
         
-        <path>package/war-js
+        <path>package/
         </path>
         
         <resources>
-          <URI>app.js
+          <URI>war-js/app.js
           </URI>
-          <URI>spiralcraft.js
+          <URI>war-js/spiralcraft.js
           </URI>
-          <URI>template.js
+          <URI>war-js/template.js
+          </URI>
+          <URI>war-webui/slide-controller.tgl
           </URI>
         </resources>
       </scm:Change>  

@@ -5,11 +5,11 @@ SPIRALCRAFT.app = (function(self) {
   var SC=SPIRALCRAFT;
 
   
-  self.State = SPIRALCRAFT.extend
-    (SPIRALCRAFT.SCObject
+  self.State = SC.extend
+    (SC.SCObject
     ,function(conf) 
       {
-        SPIRALCRAFT.SCObject.call(this);
+        SC.SCObject.call(this);
         this.name=conf.name;
         this.actions=conf.actions;
         this.config=conf;
@@ -21,12 +21,12 @@ SPIRALCRAFT.app = (function(self) {
       }
     );
 
-  self.StateMachine = SPIRALCRAFT.extend
-    (SPIRALCRAFT.SCObject
+  self.StateMachine = SC.extend
+    (SC.SCObject
     ,function(machineConfig) 
       {
         // console.log(machineConfig);
-        SPIRALCRAFT.SCObject.call(this);
+        SC.SCObject.call(this);
         this.states=[];
         this.statesByName=[];
         
@@ -93,11 +93,11 @@ SPIRALCRAFT.app = (function(self) {
   /*
    * Container groups several components into some form of interaction model.
    */
-  self.View = SPIRALCRAFT.extend
-    (SPIRALCRAFT.SCObject
+  self.View = SC.extend
+    (SC.SCObject
     ,function(peer,node,conf) 
     { 
-      SPIRALCRAFT.SCObject.call(this);
+      SC.SCObject.call(this);
       this.peer=peer;
       this.node=node;
       this.conf=conf;
@@ -120,7 +120,7 @@ SPIRALCRAFT.app = (function(self) {
   /*
    * Container groups several components into some form of interaction model.
    */
-  self.Container = SPIRALCRAFT.extend
+  self.Container = SC.extend
     (self.View
     ,function(peer,node,conf) 
     { 
@@ -145,7 +145,7 @@ SPIRALCRAFT.app = (function(self) {
     }
   );
   
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("container",function(p,n,c) { return new self.Container(p,n,c); });
   
   /*
@@ -153,7 +153,7 @@ SPIRALCRAFT.app = (function(self) {
    * 
    * A control that switches between one of several views
    */
-  self.ViewSelector = SPIRALCRAFT.extend
+  self.ViewSelector = SC.extend
     (self.Container
     ,function(peer,node,conf) 
       {
@@ -243,7 +243,7 @@ SPIRALCRAFT.app = (function(self) {
    * Switches focus between multiple views based on input from menus, application
    *   logic, and/or URL fragments based on a state machine.
    */
-  self.Router = SPIRALCRAFT.extend 
+  self.Router = SC.extend 
     (self.ViewSelector
     ,function(peer,node,conf) 
       {
@@ -294,7 +294,7 @@ SPIRALCRAFT.app = (function(self) {
       }
     );
   
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("router",function(p,n,c) { return new self.Router(p,n,c); });
   
   /*
@@ -302,7 +302,7 @@ SPIRALCRAFT.app = (function(self) {
    * 
    * A view that is controlled by the state of a router
    */
-  self.RoutedView = SPIRALCRAFT.extend(
+  self.RoutedView = SC.extend(
     self.Container
     ,function(peer,node,conf) 
     {
@@ -343,7 +343,7 @@ SPIRALCRAFT.app = (function(self) {
     ,function() {}
   );
   
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("routedView",function(p,n,c) { return new self.RoutedView(p,n,c); });
 
   /*
@@ -354,7 +354,7 @@ SPIRALCRAFT.app = (function(self) {
    * The conf object contains an "iterate" function which will be called with
    *   "this" = to the this view to provide access to the component tree. 
    */
-  self.Iterator = SPIRALCRAFT.extend(
+  self.Iterator = SC.extend(
     self.Container
     ,function(peer,node,conf) 
     { 
@@ -421,7 +421,7 @@ SPIRALCRAFT.app = (function(self) {
           }
 
           this.index=0;
-          SPIRALCRAFT.forEach
+          SC.forEach
             (data
             ,function(data) 
               {  
@@ -449,7 +449,7 @@ SPIRALCRAFT.app = (function(self) {
                 }
                 if (html.length>0)
                 { 
-                  var nodes=SPIRALCRAFT.dom.nodesFromHTML(html);
+                  var nodes=SC.dom.nodesFromHTML(html);
                   if (this.conf.trace)
                   { console.log("html ",html);
                   }
@@ -461,7 +461,7 @@ SPIRALCRAFT.app = (function(self) {
                     }
                     newchild=node.insertBefore(newchild,end);
                     if (newchild)
-                    { SPIRALCRAFT.webui.processTree(newchild);
+                    { SC.webui.processTree(newchild);
                     }
                     endIndex++;
                   }
@@ -478,13 +478,13 @@ SPIRALCRAFT.app = (function(self) {
     }
   );
   
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("iterator",function(p,n,c) { return new self.Iterator(p,n,c); });
 
   /*
    * Selector: A writable control which controls selection from a set of items. 
    */
-  self.Selector = SPIRALCRAFT.extend
+  self.Selector = SC.extend
     (self.Container
       ,function(peer,node,conf)
       { 
@@ -511,7 +511,7 @@ SPIRALCRAFT.app = (function(self) {
           if (this.conf.trace) console.log(data);
           var node=this.peer.element();
           
-          SPIRALCRAFT.forEach
+          SC.forEach
             (data
             ,function(data) 
               {  
@@ -528,7 +528,7 @@ SPIRALCRAFT.app = (function(self) {
                 }
                 node.insertAdjacentHTML("beforeend",html);
                 
-                SPIRALCRAFT.webui.processTree(node.children[node.children.length-1]);              
+                SC.webui.processTree(node.children[node.children.length-1]);              
               }.bind(this)
             );
           
@@ -577,13 +577,13 @@ SPIRALCRAFT.app = (function(self) {
       }
     );
   
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("selector",function(p,n,c) { return new self.Selector(p,n,c); });
 
   /*
    * SelectorItem: Represents an item in a Selection
    */
-  self.SelectorItem = SPIRALCRAFT.extend
+  self.SelectorItem = SC.extend
     (self.Container
       ,function(peer,node,conf)
       { 
@@ -606,10 +606,10 @@ SPIRALCRAFT.app = (function(self) {
         this.selectionChanged = function(isSelected)
         { 
           if (isSelected)
-          { SPIRALCRAFT.dom.addClass(this.node,"selected");
+          { SC.dom.addClass(this.node,"selected");
           }
           else
-          { SPIRALCRAFT.dom.removeClass(this.node,"selected");
+          { SC.dom.removeClass(this.node,"selected");
           }
         }
         
@@ -623,13 +623,13 @@ SPIRALCRAFT.app = (function(self) {
       }
     );
   
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("selectorItem",function(p,n,c) { return new self.SelectorItem(p,n,c); });
 
   /*
    * Clickable: A simple control which reponds to a click with some action
    */
-  self.Clickable = SPIRALCRAFT.extend
+  self.Clickable = SC.extend
     (self.View
       ,function(peer,node,conf)
       {
@@ -649,7 +649,7 @@ SPIRALCRAFT.app = (function(self) {
       }
     );
 
-  SPIRALCRAFT.webui.registerView
+  SC.webui.registerView
     ("clickable",function(p,n,c) { return new self.Clickable(p,n,c); });
   
 

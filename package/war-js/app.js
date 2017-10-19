@@ -29,6 +29,7 @@ SPIRALCRAFT.app = (function(self) {
         SC.SCObject.call(this);
         this.states=[];
         this.statesByName=[];
+        this.controller=null;
         
         for (var i=0; i<machineConfig.states.length;i++)
         { 
@@ -71,12 +72,26 @@ SPIRALCRAFT.app = (function(self) {
               var action=this.selectedState.actions[name];
               if (action)
               {
-                if (action.nextState)
-                { this.selectState(action.nextState)
+                if (action.can)
+                { 
+                  if (!action.can.call(this.controller));
+                  { return false;
+                  }
                 }
-                else
-                { console.log("No nextState for action '"+name+"' ",action);
-                };  
+                var result=null;
+                if (action.fn)
+                { result=action.fn.call(this.controller);
+                }
+                var nextState=null;
+                if (action.map)
+                { nextState=action.map[result];
+                }
+                if (nextState==null && action.go)
+                { nextState=action.go;  
+                }
+                if (nextState!=null)
+                { this.selectState(nextState);
+                }
                  
               }
               else
@@ -165,6 +180,7 @@ SPIRALCRAFT.app = (function(self) {
         { 
           this.stateMachine=new self.StateMachine(conf.stateMachine);
           this.stateMachine.observe(this);
+          this.stateMachine.controller=this;
         }
       }
     ,new function() 

@@ -95,10 +95,6 @@ $SC.onBodyLoad = function(fn) {
 
 $SC.init = function(options) {
   
-  SPIRALCRAFT.defaultOptions = {
-    scanDOMOnInit: false
-  };
-  
   SPIRALCRAFT.options=(options || SPIRALCRAFT.defaultOptions);
   SPIRALCRAFT.start();
 }
@@ -113,6 +109,11 @@ var SPIRALCRAFT = (function (self) {
   
   var _debug = true;
 
+  self.defaultOptions =
+  {
+    scanDOMOnInit: false
+  };
+  
   /*
    * Call manually after all scripts are referenced to set up the framework
    *   to be initialized when the DOM is ready.
@@ -267,7 +268,7 @@ SPIRALCRAFT.dom = (function(self) {
   self.bodyOnLoad = function() {
     // window.console.log("SPIRALCRAFT.dom.bodyOnLoad()");
     _bodyOnLoadFired = true;
-    
+    SPIRALCRAFT.options=(SPIRALCRAFT.options || SPIRALCRAFT.defaultOptions);
     SPIRALCRAFT.webui.doInit();
     self.bodyOnLoadChain();
   }; 

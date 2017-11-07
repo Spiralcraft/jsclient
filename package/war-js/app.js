@@ -106,7 +106,7 @@ SPIRALCRAFT.app = (function(self) {
   
   
   /*
-   * Container groups several components into some form of interaction model.
+   * A View manages the interaction between the framework and a DOM node.
    */
   self.View = SC.extend
     (SC.SCObject

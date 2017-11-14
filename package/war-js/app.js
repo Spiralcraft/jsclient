@@ -4,7 +4,78 @@
 SPIRALCRAFT.app = (function(self) {
   var SC=SPIRALCRAFT;
 
+  /**
+   * Component is a long-lived configurable object which supports events and
+   *   participates in a structure of other Components.
+   */
+  self.Component = SC.extend
+    (SC.SCObject
+    ,function(conf)
+      {
+        SC.SCObject.call(this);
+        this.conf=(conf || {});
+        this.listeners={ };
+
+        if (this.conf.trace) 
+          console.log("Constructing "+(typeof this)+JSON.stringify(this));
+      
+      }
+    ,new function()
+      {
+        this.class={ name: "spiralcraft.app.Component" };
+        
+        this.addListener = function(event,listener)
+        {
+          var elist=this.listeners[event];
+          if (!elist)
+          { 
+            elist=[]; 
+            this.listeners[event]=elist;
+            if (this.conf.trace)
+              console.log("Added ",event);
+          }
+          if (elist.indexOf(listener)<0)
+          { 
+            elist.push(listener);
+            if (this.conf.trace)
+              console.log("Added ",event,listener);
+          }
+          else
+          { console.log("Dup listener ",event,listener,this);
+          }
+        }
+        
+        this.notifyListeners = function(event)
+        {
+          if (this.conf.trace)
+            console.log("Notifying ",event);
+          var ename;
+          if (typeof event == "string")
+          { ename=event;
+          }
+          else
+          { ename=event.name;
+          }
+          var elist=this.listeners[ename];
+          if (elist)
+          {
+            for (var i=0;i<elist.length;i++)
+            { elist[i](event);
+            }
+          }
+          else
+          {
+            if (this.conf.trace)
+              console.log("No listeners for ",event);
+          }
+        }
+      
+      }
+    );
   
+  /**
+   * State is an element in a StateMachine. It maps actions to other states.
+   */
   self.State = SC.extend
     (SC.SCObject
     ,function(conf) 
@@ -109,16 +180,14 @@ SPIRALCRAFT.app = (function(self) {
    * A View manages the interaction between the framework and a DOM node.
    */
   self.View = SC.extend
-    (SC.SCObject
+    (self.Component
     ,function(peer,node,conf) 
     { 
-      SC.SCObject.call(this);
+      self.Component.call(this,conf);
       this.peer=peer;
       this.node=node;
-      this.conf=conf;
-      if (this.conf.trace) 
-        console.log("Constructing "+(typeof this)+JSON.stringify(this));
       if (this.conf.init) this.conf.init.call(this);
+
     }
     ,new function() 
     { 
@@ -142,7 +211,6 @@ SPIRALCRAFT.app = (function(self) {
       self.View.call(this,peer,node,conf);
       this.peer=peer;
       this.node=node;
-      this.conf=conf;
       if (this.conf.trace) 
         console.log("Constructing "+(typeof this)+JSON.stringify(this));
     }
@@ -213,14 +281,32 @@ SPIRALCRAFT.app = (function(self) {
          */
         this.selectView = function(name) 
         {
+          if (this.conf.trace) 
+            console.log("selectView",name);
           var target=this.views[name];
           if (target)
           { 
             if (this.selected)
-            { this.selected.peer.element().style.display='none';
+            { 
+              var view=this.selected.peer.view;
+              if (view.leavingFocus)
+              { view.leavingFocus();
+              }
+              this.selected.peer.element().style.display='none';
+              if (view.leftFocus)
+              { view.leftFocus();
+              }
+            }
+            this.selected=target;
+            var view=target.peer.view;
+            if (view.enteringFocus)
+            { view.enteringFocus();
             }
             target.peer.element().style.display=target.defaultDisplay;
-            this.selected=target;
+            if (view.enteredFocus)
+            { view.enteredFocus();
+            }
+            
           }
           else
           { console.log("View "+name+" not found in "+this.conf.contextName);
@@ -302,7 +388,8 @@ SPIRALCRAFT.app = (function(self) {
           var newHash=SC.uri.getFragment(event.newURL);
           if (newHash != this.lastHash)
           { 
-            console.log("Hash changed from "+this.lastHash+" to "+newHash,event);
+            if (this.conf.trace)
+              console.log("Hash changed from "+this.lastHash+" to "+newHash,event);
             this.selectState(newHash);
             this.lastHash=newHash;
           }
@@ -356,7 +443,14 @@ SPIRALCRAFT.app = (function(self) {
         }
       }
     }
-    ,function() {}
+    ,new function() 
+    {
+      this.enteringFocus = function() { this.notifyListeners("enteringFocus"); };
+      this.enteredFocus = function() { this.notifyListeners("enteredFocus"); };
+      this.leavingFocus = function() { this.notifyListeners("leavingFocus"); };
+      this.leftFocus = function () { this.notifyListeners("leftFocus"); };
+      
+    }
   );
   
   SC.webui.registerView
@@ -374,7 +468,8 @@ SPIRALCRAFT.app = (function(self) {
     self.Container
     ,function(peer,node,conf) 
     { 
-      self.Container.call(this,peer,node,conf);
+      var defaultConf={ autoRefresh: true };
+      self.Container.call(this,peer,node,SC.copy(defaultConf,conf));
       this.index=null;
       this.iteratingItem=null;
     }
@@ -387,6 +482,12 @@ SPIRALCRAFT.app = (function(self) {
       this.subtreeProcessed = function()
       {
         this._super();
+        if (this.conf.autoRefresh)
+          this.refresh();
+      }
+      
+      this.refresh = function()
+      {
         var data;
         
         if (this.peer.iterate)
@@ -406,6 +507,7 @@ SPIRALCRAFT.app = (function(self) {
           var end;
           var startIndex;
           var endIndex;
+          var remove=[];
           for (var i=0;i<children.length;i++)
           { 
             var child=children[i];
@@ -415,12 +517,19 @@ SPIRALCRAFT.app = (function(self) {
               { 
                 start=child;
                 startIndex=i;
+                remove=[];
               }
-              if (child.nodeValue=="SC-END")
+              else if (child.nodeValue=="SC-END")
               { 
                 end=child;
                 endIndex=i;
               }
+              else if (end==null)
+              { remove.push(child);
+              }
+            }
+            else if (end==null)
+            { remove.push(child);
             }
           }
           if (!end)
@@ -433,9 +542,16 @@ SPIRALCRAFT.app = (function(self) {
           { 
             start=document.createComment("SC-START");
             startIndex=endIndex;
+            endIndex++;
             node.insertBefore(start,end);
           }
-
+          if (remove)
+          { 
+            for (var i=0;i<remove.length;i++)
+            { node.removeChild(remove[i]);
+            }
+          }
+          
           this.index=0;
           SC.forEach
             (data

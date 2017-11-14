@@ -226,18 +226,18 @@ var SPIRALCRAFT = (function (self) {
       
       this.observe = function(listener) 
       { 
-        if (!this.listeners)
-        { this.listeners=[];
+        if (!this.observers)
+        { this.observers=[];
         }
-        this.listeners.push(listener);
+        this.observers.push(listener);
       }
       
       this.notifyObservers = function(event)
       { 
-        if (this.listeners)
+        if (this.observers)
         { 
           SPIRALCRAFT.forEach
-            (this.listeners
+            (this.observers
             ,function(listener) { listener.notify(event) }
             );
         }
@@ -1474,7 +1474,12 @@ SPIRALCRAFT.webui = (function(self) {
        if (SPIRALCRAFT.options.traceProcessTree)
        { console.log("Calling subtreeProcessed",node,peer,peer.view);
        }
-       peer.view.subtreeProcessed();
+       try
+       { peer.view.subtreeProcessed();
+       }
+       catch (e)
+       { console.log("Exception processing DOM: ",e,node,peer,peer.view);
+       }
      }
    }
    

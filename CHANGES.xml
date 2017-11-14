@@ -15,6 +15,27 @@
     
       <scm:Change>
       
+        <revision>-dev21
+        </revision>
+        
+        <notes>
+          <scm:Note>Event dispatch and registration facility in new Component class
+          </scm:Note>
+        </notes>
+        
+        <path>package/
+        </path>
+        
+        <resources>
+          <URI>war-js/app.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+      
+      <scm:Change>
+      
         <revision>-dev20
         </revision>
         

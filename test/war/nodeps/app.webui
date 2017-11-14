@@ -15,6 +15,7 @@
   <div data-sc-view='
     { type: "router"
      ,contextName: "mainRouter"
+     ,trace: false
      ,stateMachine:
        {
          states:
@@ -22,22 +23,22 @@
              { name: "one"
                ,viewName: "viewOne"
                ,actions: 
-                 { next: { nextState:"two" }
-                 , back: { nextState:"three" }
+                 { next: { go:"two" }
+                 , back: { go:"three" }
                  }
              },
              { name: "two"
                ,viewName: "viewTwo"
                ,actions: 
-                 { next: { nextState:"three" }
-                 , back: { nextState:"one" }
+                 { next: { go:"three" }
+                 , back: { go:"one" }
                  }
              },
              { name: "three"
                ,viewName: "viewThree"
                ,actions: 
-                 { next: { nextState:"one" }
-                 , back: { nextState:"two" }
+                 { next: { go:"one" }
+                 , back: { go:"two" }
                  }
              }
            ]
@@ -52,6 +53,7 @@
         type: "routedView"
         ,name: "viewOne"
         ,router: "mainRouter"
+        ,init: function() { this.addListener("enteringFocus",function (_) { console.log(_); }) }
       }'
       >
       View One
@@ -62,6 +64,7 @@
         type: "routedView"
         ,name: "viewTwo"
         ,router: "mainRouter"
+        ,init: function() { this.addListener("enteringFocus",function (_) { console.log(_); }) }
       }'
       >
       View Two
@@ -72,6 +75,7 @@
         type: "routedView"
         ,name: "viewThree"
         ,router: "mainRouter"
+        ,init: function() { this.addListener("enteringFocus",function (_) { console.log(_); }) }
       }'
       >
       View Three

@@ -13,7 +13,10 @@
     <script type="sc-template" data-sc-config='{ paramName: "data" }'>
       <li>${this.index}. ${data}</li>
     </script>
+    <div>Something earlier</div>
+    <!--SC-START-->
     <!--SC-END-->
     <div>Something later</div>
+    <button onclick="$SC(this.parentElement).view.refresh()">Refresh</button>
   </div>
 <%/r:skin%>

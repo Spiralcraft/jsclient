@@ -1,8 +1,8 @@
 <%@doclet
-  contextX='{ viewSelectorName:="" }'
+  contextX='{ viewSelectorName:="" , initiallyHidden:=false }'
   tgns:jsc="context://code/spiralcraft-jsclient/"
   %>
-  <div class="slide-controller">
+  <div class='slide-controller <%=[jsc:slide-controller].initiallyHidden?"hidden":""/%>'>
     <div class="nav">
       <div class="prev" 
         data-sc-view='

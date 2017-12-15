@@ -15,6 +15,31 @@
     
       <scm:Change>
       
+        <revision>-dev22
+        </revision>
+        
+        <notes>
+          <scm:Note>StateMachine canEnter / canExit logic to enforce preconditions
+          </scm:Note>
+          <scm:Note>overridable init method invoked by framework after construction
+          </scm:Note>
+          <scm:Note>BoundInput control
+          </scm:Note>
+        </notes>
+        
+        <path>package/
+        </path>
+        
+        <resources>
+          <URI>war-js/app.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev21
         </revision>
         

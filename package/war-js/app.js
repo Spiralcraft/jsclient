@@ -23,6 +23,10 @@ SPIRALCRAFT.app = (function(self) {
     ,new function()
       {
         this.class={ name: "spiralcraft.app.Component" };
+
+        this.init = function()
+        { if (this.conf.init) this.conf.init.call(this);
+        }
         
         this.addListener = function(event,listener)
         {
@@ -78,17 +82,39 @@ SPIRALCRAFT.app = (function(self) {
    */
   self.State = SC.extend
     (SC.SCObject
-    ,function(conf) 
+    ,function(machine,conf) 
       {
         SC.SCObject.call(this);
+        this.machine=machine;
         this.name=conf.name;
         this.actions=conf.actions;
         this.config=conf;
       }
     ,new function() 
       {
-        this.enter = function() {};
-        this.exit = function() {};
+        this.canEnter = function()
+        { return this.config.canEnter?this.config.canEnter.call(this):true;
+        }
+        
+        this.enter = function()
+        {
+          if (this.config.onEnter)
+          { this.config.onEnter.call(this);
+          }
+        };
+        
+        this.canExit = function()
+        { return this.config.canExit?this.config.canExit.call(this):true;
+        }
+
+        this.exit = function() 
+        {
+          if (this.config.onExit)
+          { this.config.onExit.call(this);
+          }
+          
+        };
+        
       }
     );
 
@@ -101,30 +127,55 @@ SPIRALCRAFT.app = (function(self) {
         this.states=[];
         this.statesByName=[];
         this.controller=null;
+        this.config=machineConfig;
         
         for (var i=0; i<machineConfig.states.length;i++)
         { 
           var stateConf=machineConfig.states[i];
           if (stateConf)
           {
-            var state=new self.State(stateConf);
+            var state=new self.State(this,stateConf);
             this.states.push(state);
             this.statesByName[state.name]=state;
             // console.log(stateConf);
           }
         }
-        this.selectedState=this.states[0];
+        
       }
     ,new function() 
       {
+        this.init = function()
+        {
+          if (this.config.initialState)
+          { this.selectedState=this.statesByName(this.config.initialState);
+          }
+          else
+          { this.selectedState=this.states[0];
+          }
+          this.selectedState.enter();
+          this.notifyObservers();
+        }
+        
         this.selectState = function (name)
         {
           if (this.statesByName[name])
           {
+            var newState=this.statesByName[name];
+            
+            
+            if (this.selectedState)
+            { 
+              if (!this.selectedState.canExit())
+              { return;
+              }
+            }
+            if (!newState.canEnter())
+            { return;
+            }
             if (this.selectedState)
             { this.selectedState.exit();
             }
-            this.selectedState=this.statesByName[name];
+            this.selectedState=newState;
             this.selectedState.enter();
             this.notifyObservers();
           }
@@ -186,7 +237,6 @@ SPIRALCRAFT.app = (function(self) {
       self.Component.call(this,conf);
       this.peer=peer;
       this.node=node;
-      if (this.conf.init) this.conf.init.call(this);
 
     }
     ,new function() 
@@ -253,6 +303,13 @@ SPIRALCRAFT.app = (function(self) {
       }
     ,new function() 
       {
+        this.init = function()
+        {
+          this._super();
+          if (this.stateMachine)
+          { this.stateMachine.init();
+          }
+        }
         this.subtreeProcessed = function()
         {
           this._super();
@@ -784,6 +841,36 @@ SPIRALCRAFT.app = (function(self) {
   SC.webui.registerView
     ("clickable",function(p,n,c) { return new self.Clickable(p,n,c); });
   
+  /*
+   * BoundInput: A control used to edit data stored somewhere else
+   */
+  self.BoundInput = SC.extend
+    (self.View
+      ,function(peer,node,conf)
+      {
+        self.View.call(this,peer,node,conf);
+        this.binding = new SC.webui.DataBinding(node,peer,conf.source,conf.setter);
+      }
+      ,new function()
+      {
+        this.class = { name: "spiralcraft.app.BoundInput" };
+        
+        this.init = function()
+        { 
+          this._super();
+          if (this.conf.refreshOnInit)
+          { this.refresh();
+          }
+        }
+
+        this.refresh = function() 
+        { this.binding.updateControl();
+        }
+      }
+    );
+
+  SC.webui.registerView
+    ("boundInput",function(p,n,c) { return new self.BoundInput(p,n,c); });
 
   return self;
 }(SPIRALCRAFT.app || {}));

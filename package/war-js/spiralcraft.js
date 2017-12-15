@@ -1428,6 +1428,7 @@ SPIRALCRAFT.webui = (function(self) {
           { peer.view=view;
           } 
           else (console.log("No view returned by factory for "+viewConf.type));
+          view.init();
         } 
         else (console.log("View type '"+viewConf.type+"' is unknown"));
       } 

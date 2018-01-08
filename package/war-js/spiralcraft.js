@@ -1055,6 +1055,25 @@ SPIRALCRAFT.webui = (function(self) {
     }
     
     /*
+     * Peer.hide
+     * 
+     *   Hide an element and save the "display" attribute later unhiding.
+     */
+    this.hide = function()
+    { 
+      this.display=this.element().style.display;
+      this.element().style.display="none";
+      
+    }
+    
+    this.unhide = function()
+    {
+      if (this.display)
+      { this.element().style.display=this.display;
+      }
+    }
+    
+    /*
      *  Peer.findTemplate
      *  
      *    Find the template with the given name searching from the current node 

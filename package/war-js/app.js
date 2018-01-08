@@ -237,17 +237,49 @@ SPIRALCRAFT.app = (function(self) {
       self.Component.call(this,conf);
       this.peer=peer;
       this.node=node;
-
     }
     ,new function() 
     { 
       this.class={ name: "spiralcraft.app.View" };
       this.subtreeProcessed = function() {};
+      
+      /*
+       * init
+       */
+      this.init = function() 
+      { 
+        this._super();
+        this.checkVisible();
+      }
+      
+      /*
+       * Find a containing view with the specified context name or the specified type
+       */
       this.contextView = function(something) 
       {
         // console.log("View.contextView",something);
         return this.peer.contextView(something);
       };
+      
+      /*
+       * checkVisible: Check for change in dynamic visibility
+       */
+      this.checkVisible = function()
+      {
+        if (this.conf.visible)
+        { 
+          var visible=this.conf.visible.call(this);
+          if (visible==false)
+          { 
+            this.peer.hide();
+          }
+          else if (visible==true)
+          { this.peer.unhide();
+          }
+          
+        }
+
+      }
     }
   );
   

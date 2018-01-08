@@ -15,6 +15,27 @@
     
       <scm:Change>
       
+        <revision>-dev23
+        </revision>
+        
+        <notes>
+          <scm:Note>View logic to dynamically control visibility
+          </scm:Note>
+        </notes>
+        
+        <path>package/
+        </path>
+        
+        <resources>
+          <URI>war-js/app.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev22
         </revision>
         

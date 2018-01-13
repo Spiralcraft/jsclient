@@ -24,10 +24,16 @@ SPIRALCRAFT.app = (function(self) {
       {
         this.class={ name: "spiralcraft.app.Component" };
 
+        /*
+         * Component.init()
+         */
         this.init = function()
         { if (this.conf.init) this.conf.init.call(this);
         }
         
+        /*
+         * Component.addListener(event,listener)
+         */
         this.addListener = function(event,listener)
         {
           var elist=this.listeners[event];
@@ -43,12 +49,31 @@ SPIRALCRAFT.app = (function(self) {
             elist.push(listener);
             if (this.conf.trace)
               console.log("Added ",event,listener);
+            this.listenerAdded(event,listener);
           }
           else
           { console.log("Dup listener ",event,listener,this);
           }
         }
         
+        /*
+         * Component.removeListener(event,listener)
+         */
+        this.removeListener = function(event,listener)
+        {
+          var elist=this.listeners[event];
+          if (elist)
+          {
+            var index=elist.indexOf(listener);
+            if (index>=0)
+            { elist.splice(index,1);
+            }
+          }
+        }
+        
+        /*
+         * Component.notifyListers(event)
+         */
         this.notifyListeners = function(event)
         {
           if (this.conf.trace)
@@ -72,6 +97,16 @@ SPIRALCRAFT.app = (function(self) {
             if (this.conf.trace)
               console.log("No listeners for ",event);
           }
+        }
+        
+        /*
+         * Component.listenerAdded(event,listener)
+         * 
+         *   Called after an event listener has been registered
+         */
+        this.listenerAdded = function(event,listener)
+        {
+          
         }
       
       }
@@ -234,14 +269,28 @@ SPIRALCRAFT.app = (function(self) {
     (self.Component
     ,function(peer,node,conf) 
     { 
-      self.Component.call(this,conf);
+      var defaultConf={ autoRefresh: true };
+      self.Component.call(this,SC.copy(defaultConf,conf));
       this.peer=peer;
       this.node=node;
+      this.model=null;
+      this.parentView=null;
+      this.onEnteringFocusSubscribed=false;
+      this.refreshOnEnteringFocus;
     }
     ,new function() 
     { 
       this.class={ name: "spiralcraft.app.View" };
-      this.subtreeProcessed = function() {};
+      
+      /*
+       * Handle anything that needs to happen on the DOM refresh sweep
+       */
+      this.subtreeProcessed = function() 
+      {
+        if (this.conf.autoRefresh)
+        { this.refresh();
+        }
+      };
       
       /*
        * init
@@ -249,11 +298,99 @@ SPIRALCRAFT.app = (function(self) {
       this.init = function() 
       { 
         this._super();
+        this.parentView=this.peer.parentView();
+        
+        if (this.conf.model)
+        {
+          if (SC.isAssignableFrom(SC.webui.Channel,this.conf.model))
+          { this.model=this.conf.model;
+          }
+          else if (typeof this.conf.model == "string" )
+          {
+            this.model
+              =new SC.webui.Channel
+                (new Function("return "+this.conf.model).bind(this)
+                ,null
+                );
+          }
+          else
+          { console.log("Unrecognized model config",this);
+          }
+        }
+        
+        if (!this.onEnteringFocusSubscribed)
+        {
+          if (this.conf.autoRefresh || 
+              (this.conf.refreshEvents 
+               && this.conf.refreshEvents.indexOf("enteringFocus")>-1
+              )
+             ) 
+          { this.subscribeOnEnteringFocus();
+          }
+        }
+        
         this.checkVisible();
+      }
+
+      /*
+       * View.subscribeOnEnteringFocus
+       */
+      this.subscribeOnEnteringFocus = function()
+      {
+        if (this.parentView)
+        { 
+          this.parentView.addListener
+            ("enteringFocus",this.enteringFocusHandler.bind(this));
+        }
+        this.onEnteringFocusSubscribed=true;
       }
       
       /*
-       * Find a containing view with the specified context name or the specified type
+       * View.listenerAdded(event,listener)
+       */
+      this.listenerAdded = function(event,listener)
+      {
+        this._super();
+        if (event == "enteringFocus" && !this.onEnteringFocusSubscribed)
+        { this.subscribeOnEnteringFocus();
+        }
+      }
+      
+      /*
+       * View.enteringFocusHandler(event)
+       */
+      this.enteringFocusHandler = function(event)
+      { 
+        this.onEnteringFocus();
+        this.notifyListeners(event);
+      }
+      
+      /*
+       * View.onEnteringFocus 
+       */
+      this.onEnteringFocus = function()
+      {
+        if (this.conf.trace) console.log("Entering focus",this);
+        
+        if (this.conf.autoRefresh ||
+            (this.conf.refreshEvents 
+                && this.conf.refreshEvents.indexOf("enteringFocus")>-1
+               )
+           )
+        { this.refresh();
+        }
+        
+        if (this.conf.onEnteringFocus)
+        { this.conf.onEnteringFocus.apply(this);
+        }
+        
+      }
+      
+      /*
+       * View.contextView(selector)
+       * 
+       *   Find a containing view with the specified context name or the specified 
+       *   type.
        */
       this.contextView = function(something) 
       {
@@ -262,7 +399,9 @@ SPIRALCRAFT.app = (function(self) {
       };
       
       /*
-       * checkVisible: Check for change in dynamic visibility
+       * View.checkVisible(): 
+       *   
+       *   Check for change in dynamic visibility
        */
       this.checkVisible = function()
       {
@@ -280,6 +419,125 @@ SPIRALCRAFT.app = (function(self) {
         }
 
       }
+      
+      
+      /*
+       * View.refresh() 
+       * 
+       *   Refresh this view
+       */
+      this.refresh = function()
+      {
+        if (this.model)
+        { this.renderTemplate(this.model.get());
+        }
+        
+      }
+      
+      /*
+       * View.renderTemplate(data)
+       * 
+       *   Render the template for this view against the specified
+       *   data. The template will replace all the node content or the content
+       *   after the SC-START marker comment and before the SC-END marker comment.
+       */
+      this.renderTemplate = function(data)
+      {
+        if (!data)
+        { return;
+        }
+        
+      
+        var node=this.peer.element();
+        var children=node.childNodes;
+        var start;
+        var end;
+        var remove=[];
+        for (var i=0;i<children.length;i++)
+        { 
+          var child=children[i];
+          if (child.nodeType==8)
+          {
+            if (child.nodeValue=="SC-START")
+            { 
+              start=child;
+              remove=[];
+            }
+            else if (child.nodeValue=="SC-END")
+            { 
+              end=child;
+            }
+            else if (end==null)
+            { remove.push(child);
+            }
+          }
+          else if (end==null)
+          { remove.push(child);
+          }
+        }
+        if (!end)
+        {
+          end=document.createComment("SC-END");
+          node.appendChild(end);
+        }
+        if (!start)
+        { 
+          start=document.createComment("SC-START");
+          node.insertBefore(start,end);
+        }
+        if (remove)
+        { 
+          for (var i=0;i<remove.length;i++)
+          { node.removeChild(remove[i]);
+          }
+        }
+        
+        var html="";
+        if (this.peer.render)
+        { html=this.peer.render(data);
+        }
+        else if (this.peer.templates)
+        {
+          for (var i=0;i<this.peer.templates.length;i++)
+          { 
+            var template=this.peer.templates[i];
+            if (template.name==null)
+              html+=template.render(this,data);
+          }
+        }
+        else if (this.conf.templateRef)
+        { 
+          var template=this.peer.findTemplate(this.conf.templateRef);
+          if (template)
+          { html+=template.render(this,data);
+          }
+        }
+        if (html.length>0)
+        { 
+          var nodes=SC.dom.nodesFromHTML(html);
+          if (this.conf.trace)
+          { console.log("html ",html);
+          }
+          for (var i=0;i<nodes.length;i++)
+          {
+            var newchild=nodes[i];
+            if (this.conf.trace)
+            { console.log("node ",newchild);
+            }
+            newchild=node.insertBefore(newchild,end);
+            if (newchild)
+            { SC.webui.processTree(newchild);
+            }
+          }
+
+        }
+        
+      }
+    }
+    ,function()
+    { 
+      SC.webui.registerView
+        ("view",function(p,n,c) { return new this(p,n,c); }.bind(this));
     }
   );
   
@@ -308,10 +566,13 @@ SPIRALCRAFT.app = (function(self) {
       { return this.conf.name+" ("+this.peer.nid+")";
       }
     }
+    ,function()
+    { 
+      SC.webui.registerView
+        ("container",function(p,n,c) { return new this(p,n,c); }.bind(this));
+    }
   );
   
-  SC.webui.registerView
-    ("container",function(p,n,c) { return new self.Container(p,n,c); });
   
   /*
    * View Selector
@@ -484,11 +745,13 @@ SPIRALCRAFT.app = (function(self) {
           }
         }
       }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("router",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
     );
-  
-  SC.webui.registerView
-    ("router",function(p,n,c) { return new self.Router(p,n,c); });
-  
+    
   /*
    * RoutedView
    * 
@@ -540,10 +803,13 @@ SPIRALCRAFT.app = (function(self) {
       this.leftFocus = function () { this.notifyListeners("leftFocus"); };
       
     }
+    ,function()
+    { 
+      SC.webui.registerView
+        ("routedView",function(p,n,c) { return new this(p,n,c); }.bind(this));
+    }
   );
   
-  SC.webui.registerView
-    ("routedView",function(p,n,c) { return new self.RoutedView(p,n,c); });
 
   /*
    * Iterator
@@ -571,7 +837,7 @@ SPIRALCRAFT.app = (function(self) {
       this.subtreeProcessed = function()
       {
         this._super();
-        if (this.conf.autoRefresh)
+        if (this.conf.autoRefresh==true)
           this.refresh();
       }
       
@@ -697,11 +963,13 @@ SPIRALCRAFT.app = (function(self) {
       }
 
     }
+    ,function()
+    { 
+      SC.webui.registerView
+        ("iterator",function(p,n,c) { return new this(p,n,c); }.bind(this));
+    }
   );
   
-  SC.webui.registerView
-    ("iterator",function(p,n,c) { return new self.Iterator(p,n,c); });
-
   /*
    * Selector: A writable control which controls selection from a set of items. 
    */
@@ -796,11 +1064,13 @@ SPIRALCRAFT.app = (function(self) {
           }
         }
       }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("selector",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
     );
   
-  SC.webui.registerView
-    ("selector",function(p,n,c) { return new self.Selector(p,n,c); });
-
   /*
    * SelectorItem: Represents an item in a Selection
    */
@@ -842,11 +1112,13 @@ SPIRALCRAFT.app = (function(self) {
         { this.selector.itemSelected(this.data);
         }        
       }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("selectorItem",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
     );
   
-  SC.webui.registerView
-    ("selectorItem",function(p,n,c) { return new self.SelectorItem(p,n,c); });
-
   /*
    * Clickable: A simple control which reponds to a click with some action
    */
@@ -868,11 +1140,13 @@ SPIRALCRAFT.app = (function(self) {
           this.conf.onClick.call(this);
         }
       }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("clickable",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
     );
 
-  SC.webui.registerView
-    ("clickable",function(p,n,c) { return new self.Clickable(p,n,c); });
-  
   /*
    * BoundInput: A control used to edit data stored somewhere else
    */
@@ -899,10 +1173,12 @@ SPIRALCRAFT.app = (function(self) {
         { this.binding.updateControl();
         }
       }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("boundInput",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
     );
-
-  SC.webui.registerView
-    ("boundInput",function(p,n,c) { return new self.BoundInput(p,n,c); });
 
   return self;
 }(SPIRALCRAFT.app || {}));

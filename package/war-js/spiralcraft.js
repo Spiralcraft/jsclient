@@ -135,7 +135,7 @@ var SPIRALCRAFT = (function (self) {
    *   the superclass method.
    * @returns A "class" that can be instantiated via the "new" operator.
    */
-  self.extend = function(baseFn,constructorFn,definition)
+  self.extend = function(baseFn,constructorFn,definition,clinitFn)
   {
     var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
     var _super = baseFn.prototype;
@@ -168,6 +168,10 @@ var SPIRALCRAFT = (function (self) {
           };
         })(name, definition[name]) :
         definition[name]
+    }
+    // Check for and run the class initializer
+    if (clinitFn)
+    { clinitFn.call(constructorFn);
     }
     return constructorFn;
   }
@@ -859,6 +863,7 @@ SPIRALCRAFT.util = (function(self) {
  */
 SPIRALCRAFT.webui = (function(self) {
 
+  var SC = SPIRALCRAFT;
   var _sessionSyncCount = 0;
   var _peers={};
   var autoId = 1;
@@ -1122,6 +1127,28 @@ SPIRALCRAFT.webui = (function(self) {
     };
     
     /*
+     * Peer.parentView
+     * 
+     *   Find the immediate parent that is associated with a View
+     */
+    this.parentView = function()
+    {
+      var node=this.element().parentNode;
+      do 
+      { 
+        var peer=self.existingPeer(node);
+        // console.log("contextView",something,peer,peer?peer.view:null);
+        // console.log("finding "+name+" in "+node);
+        if (peer && peer.view)
+        { return peer.view;
+        }
+        node=node.parentNode;
+      }
+      while (node!=null)
+      
+    }
+    
+    /*
      *  Peer.contextView
      *
      *    Find the parent node with the specified context name or that has a
@@ -1281,10 +1308,60 @@ SPIRALCRAFT.webui = (function(self) {
     };
   }
   
+  /*
+   * A bidirectional data source/sink
+   */
+  self.Channel = SC.extend
+    (SC.SCObject
+    ,function(getter,setter) 
+    { 
+      this.getter=getter;
+      this.setter=setter;
+    }
+    ,new function()
+    {
+      /*
+       * handleSourceEvent(event)
+       *
+       *  Handle an event generated when the source data changes
+       */
+      this.handleSourceEvent = function(event) 
+      {
+        switch (event.type) {
+           case "change": this.sourceChanged(this.getSourceValue());
+        }
+      };
+      
+      /*
+       * get: Get the value from the source
+       */
+      this.get = function()
+      { return this.getter();
+      }
+      
+      /*
+       * set: Write a value to the source
+       */
+      this.set=function(value)
+      { 
+        this.setter(value);
+        this.sourceChanged(this.getter());
+      }
+      
+      /*
+       * sourceChanged: Called internally when the source value changes
+       */
+      this.sourceChanged = function(value)
+      { notifyObservers({ type:"change", oldValue:undefined, newValue:value});
+      }
+    }
+    );
   
-  //
-  //DataBinding type
-  //
+  /*
+   * DataBinding 
+   * 
+   *   Binds a DOM element to a data location 
+   */
   self.DataBinding = function (element, peer, expr, setter) {
     this.expr = expr;
     this.peer = peer;

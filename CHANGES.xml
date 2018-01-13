@@ -21,6 +21,17 @@
         <notes>
           <scm:Note>View logic to dynamically control visibility
           </scm:Note>
+          <scm:Note>Class initializer function in SC.extend mechanism to simplify
+            view factory registration.
+          </scm:Note>
+          <scm:Note>Peer.parentView resolves parent view in hierarchy.
+          </scm:Note>
+          <scm:Note>Channel construct for Views to bind to abstracted data locations
+            as their model reference.
+          </scm:Note>
+          <scm:Note>Factor focus events and template rendering into the base View
+            class.
+          </scm:Note>
         </notes>
         
         <path>package/

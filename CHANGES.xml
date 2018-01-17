@@ -32,6 +32,8 @@
           <scm:Note>Factor focus events and template rendering into the base View
             class.
           </scm:Note>
+          <scm:Note>Garbage collect peers that are dynamically generated
+          </scm:Note>
         </notes>
         
         <path>package/

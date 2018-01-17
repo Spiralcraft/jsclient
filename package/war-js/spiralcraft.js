@@ -1052,7 +1052,7 @@ SPIRALCRAFT.webui = (function(self) {
       if (this.view)
       { this.view.dispose();
       }
-      this.peers[this.id]=null;
+      _peers[this.id]=null;
     }
     
     /*

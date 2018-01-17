@@ -320,7 +320,7 @@ SPIRALCRAFT.app = (function(self) {
         
         if (!this.onEnteringFocusSubscribed)
         {
-          if (this.conf.autoRefresh || 
+          if (
               (this.conf.refreshEvents 
                && this.conf.refreshEvents.indexOf("enteringFocus")>-1
               )
@@ -333,14 +333,31 @@ SPIRALCRAFT.app = (function(self) {
       }
 
       /*
+       * View.dispose()
+       */
+      this.dispose = function()
+      {
+        if (this.onEnteringFocusSubscribed)
+        { 
+          if (this.parentView)
+          {
+            console.log("removing enteringFocus listener");
+            this.parentView.removeListener
+              ("enteringFocus",this.boundEnteringFocusHandler);
+          }
+        }
+      }
+      
+      /*
        * View.subscribeOnEnteringFocus
        */
       this.subscribeOnEnteringFocus = function()
       {
         if (this.parentView)
         { 
+          this.boundEnteringFocusHandler=this.enteringFocusHandler.bind(this);
           this.parentView.addListener
-            ("enteringFocus",this.enteringFocusHandler.bind(this));
+            ("enteringFocus",this.boundEnteringFocusHandler);
         }
         this.onEnteringFocusSubscribed=true;
       }
@@ -488,7 +505,12 @@ SPIRALCRAFT.app = (function(self) {
         if (remove)
         { 
           for (var i=0;i<remove.length;i++)
-          { node.removeChild(remove[i]);
+          { 
+            var rpeer=SC.webui.existingPeer(remove[i]);
+            if (rpeer)
+            { rpeer.dispose();
+            }
+            node.removeChild(remove[i]);
           }
         }
         
@@ -857,6 +879,11 @@ SPIRALCRAFT.app = (function(self) {
         if (data)
         {
           var node=this.peer.element();
+          if (!node)
+          { 
+            console.log("No element!",this,this.peer);
+            return;
+          }
           var children=node.childNodes;
           var start;
           var end;
@@ -903,7 +930,12 @@ SPIRALCRAFT.app = (function(self) {
           if (remove)
           { 
             for (var i=0;i<remove.length;i++)
-            { node.removeChild(remove[i]);
+            { 
+              var rpeer=SC.webui.existingPeer(remove[i]);
+              if (rpeer)
+              { rpeer.dispose();
+              }              
+              node.removeChild(remove[i]);
             }
           }
           

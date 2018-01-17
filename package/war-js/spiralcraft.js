@@ -1041,6 +1041,20 @@ SPIRALCRAFT.webui = (function(self) {
       element[event]=SPIRALCRAFT.dom.chainEvent(element[event],fn);
     }
     
+    /* 
+     * Peer.dispose()
+     * 
+     *   Called before deleting the dom node associated with this peer to disconnect
+     *     the peer from any references
+     */
+    this.dispose = function()
+    {
+      if (this.view)
+      { this.view.dispose();
+      }
+      this.peers[this.id]=null;
+    }
+    
     /*
      * Peer.addClass
      * 

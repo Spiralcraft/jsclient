@@ -15,6 +15,29 @@
     
       <scm:Change>
       
+        <revision>-dev25
+        </revision>
+        
+        <notes>
+          <scm:Note>Error reporting enhancements
+          </scm:Note>
+          <scm:Note>Added map(array,fn) function
+          </scm:Note>
+        </notes>
+        
+        <path>package/
+        </path>
+        
+        <resources>
+          <URI>war-js/app.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+      
+      <scm:Change>
+      
         <revision>-dev23
         </revision>
         

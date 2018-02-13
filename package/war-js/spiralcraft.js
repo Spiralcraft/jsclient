@@ -183,6 +183,21 @@ var SPIRALCRAFT = (function (self) {
     }
   }
   
+  /*
+   * map(array,fn)
+   * 
+   *  Invoke fn on each element in the array and store the result in the
+   *    corresponding location in the new array
+   */
+  self.map = function(array,fn)
+  {
+    var ret=[];
+    for (var i=0;i<array.length;i++)
+    { ret.push(fn(array[i]));
+    }
+    return ret;
+  }
+  
   self.isAssignableFrom = function(supertype,object)
   {
     var p=supertype;
@@ -374,7 +389,7 @@ SPIRALCRAFT.dom = (function(self) {
   };
   
   /*
-   * SPIRALCRAFT.dome.nodesFromHTML
+   * SPIRALCRAFT.dom.nodesFromHTML
    * 
    * Return a set of nodes given HTML text
    */
@@ -384,6 +399,7 @@ SPIRALCRAFT.dom = (function(self) {
     template.innerHTML=html;
     return template.content.children;
   }
+  
   /* 
    * SPIRALCRAFT.dom.getComments
    * 

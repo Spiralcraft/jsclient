@@ -31,6 +31,26 @@ SPIRALCRAFT.app = (function(self) {
         { if (this.conf.init) this.conf.init.call(this);
         }
         
+        this.error = function(message,cause)
+        {
+          var ne = new Error(message+" ("+this.objectId()+")");
+          ne.stack += '\nCaused by: '+cause.stack;
+          ne.cause=cause;
+          throw ne;
+        }
+        
+        this.objectId = function()
+        { 
+          if (this.constructor.prototype.class)
+          { return this.constructor.prototype.class.name;
+          }
+          else
+          { 
+            console.log("objectId called out of context",this);
+            return "???";
+          }
+        }
+        
         /*
          * Component.addListener(event,listener)
          */
@@ -283,6 +303,13 @@ SPIRALCRAFT.app = (function(self) {
       this.class={ name: "spiralcraft.app.View" };
       
       /*
+       * Identify this View by class and peer id
+       */
+      this.objectId = function()
+      { return this._super()+"@"+this.peer.id;
+      }
+      
+      /*
        * Handle anything that needs to happen on the DOM refresh sweep
        */
       this.subtreeProcessed = function() 
@@ -310,6 +337,30 @@ SPIRALCRAFT.app = (function(self) {
             this.model
               =new SC.webui.Channel
                 (new Function("return "+this.conf.model).bind(this)
+                ,null
+                );
+          }
+          else if (typeof this.conf.model == "number" )
+          {
+            this.model
+              =new SC.webui.Channel
+                (new Function("return "+this.conf.model).bind(this)
+                ,null
+                );
+          }
+          else if (typeof this.conf.model == "boolean" )
+          {
+            this.model
+              =new SC.webui.Channel
+                (new Function("return "+this.conf.model).bind(this)
+                ,null
+                );
+          }
+          else if (typeof this.conf.model == "object" )
+          {
+            this.model
+              =new SC.webui.Channel
+                (new Function("return "+SC.JSON.stringify(this.conf.model)).bind(this)
                 ,null
                 );
           }
@@ -618,6 +669,8 @@ SPIRALCRAFT.app = (function(self) {
       }
     ,new function() 
       {
+        this.class={ name: "spiralcraft.app.ViewSelector" };
+      
         this.init = function()
         {
           this._super();
@@ -735,6 +788,8 @@ SPIRALCRAFT.app = (function(self) {
       }
     ,new function()
       {
+        this.class={ name: "spiralcraft.app.Router" };
+      
         this.subtreeProcessed = function()
         {
           this._super();
@@ -819,6 +874,8 @@ SPIRALCRAFT.app = (function(self) {
     }
     ,new function() 
     {
+      this.class={ name: "spiralcraft.app.RoutedView" };
+      
       this.enteringFocus = function() { this.notifyListeners("enteringFocus"); };
       this.enteredFocus = function() { this.notifyListeners("enteredFocus"); };
       this.leavingFocus = function() { this.notifyListeners("leavingFocus"); };
@@ -852,6 +909,8 @@ SPIRALCRAFT.app = (function(self) {
     }
     ,new function() 
     {
+      this.class={ name: "spiralcraft.app.Iterator" };
+
       /*
        * Render the content before the end of this node. Process the dom on the
        *   rendered content to pick up any script.
@@ -867,11 +926,17 @@ SPIRALCRAFT.app = (function(self) {
       {
         var data;
         
-        if (this.peer.iterate)
-        { data=this.peer.iterate();
+        try
+        {
+          if (this.peer.iterate)
+          { data=this.peer.iterate();
+          }
+          else if (this.conf.iterate)
+          { data=this.conf.iterate.call(this);
+          }
         }
-        else if (this.conf.iterate)
-        { data=this.conf.iterate.call(this);
+        catch (e)
+        { this.error("Problem iterating data source",e);
         }
         
         if (this.conf.trace) console.log("Iterate: "+data);
@@ -1019,6 +1084,7 @@ SPIRALCRAFT.app = (function(self) {
       }
       ,new function()
       {
+        this.class={ name: "spiralcraft.app.Selector" };
 
         /*
          * Render the content before the end of this node. Process the dom on the

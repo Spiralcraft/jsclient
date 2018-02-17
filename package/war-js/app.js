@@ -380,7 +380,9 @@ SPIRALCRAFT.app = (function(self) {
           }
         }
         
-        this.checkVisible();
+        if (this.conf.refreshOnInit)
+        { this.refresh();
+        }
       }
 
       /*
@@ -483,9 +485,9 @@ SPIRALCRAFT.app = (function(self) {
           else if (visible==true)
           { this.peer.unhide();
           }
-          
+          return visible;
         }
-
+        return true;
       }
       
       
@@ -496,10 +498,12 @@ SPIRALCRAFT.app = (function(self) {
        */
       this.refresh = function()
       {
-        if (this.model)
-        { this.renderTemplate(this.model.get());
+        if (this.checkVisible() || this.conf.renderWhenHidden)
+        {
+          if (this.model)
+          { this.renderTemplate(this.model.get());
+          }
         }
-        
       }
       
       /*

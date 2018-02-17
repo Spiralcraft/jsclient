@@ -15,6 +15,28 @@
     
       <scm:Change>
       
+        <revision>-dev26
+        </revision>
+        
+        <notes>
+          <scm:Note>Added find(array,fn) function
+          </scm:Note>
+          <scm:Note>Moved dynamic visibility check into refresh() function
+          </scm:Note>
+        </notes>
+        
+        <path>package/
+        </path>
+        
+        <resources>
+          <URI>war-js/app.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+      <scm:Change>
+      
         <revision>-dev25
         </revision>
         

@@ -15,6 +15,52 @@
     
       <scm:Change>
       
+        <revision>-dev27
+        </revision>
+        
+        <notes>
+          <scm:Note>Map common functions to $SC well known name to reduce verbosity
+          </scm:Note>
+          <scm:Note>Allow functions to be registered as observers while still allowing
+            listener objects.
+          </scm:Note>
+          <scm:Note>Integrate Channels into DataBindings as a generic get/set
+            interface.
+          </scm:Note>
+          <scm:Note>Add framework method postInit() to notify Views when all children
+            have been initialized.
+          </scm:Note>
+          <scm:Note>Encapsulate Sha256 functions due to namespace collisions with
+            unknown third party libraries
+          </scm:Note>
+          <scm:Note>Adornments deal with various aspects of views, e.g. controlling
+            specific attributes or css classes based on computed information.
+          </scm:Note>
+          <scm:Note>Enhanced model resolution flexibility via modelFn config 
+            property which permits deferral of model resolution to init phase.
+          </scm:Note>
+          <scm:Note>Enhanced templating options by providing htmlContentFn and
+            textContentFn config elements in basic View to support basic value 
+            output and adding a Template view to support literal markup templating.
+          </scm:Note>
+          <scm:Note>Sub-framework to support form controls and multi-stage validation
+            using input groups, validation rules and action containers.
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>app.js
+          </URI>
+          <URI>spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev26
         </revision>
         

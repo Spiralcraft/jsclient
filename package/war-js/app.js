@@ -28,7 +28,18 @@ SPIRALCRAFT.app = (function(self) {
          * Component.init()
          */
         this.init = function()
-        { if (this.conf.init) this.conf.init.call(this);
+        { 
+          if (this.conf.init) this.conf.init.call(this);
+        }
+        
+        /*
+         * Component.postInit()
+         * 
+         *   Called after the contained children are initialized
+         */
+        this.postInit = function()
+        {
+          if (this.conf.postInit) this.conf.postInit.call(this);
         }
         
         this.error = function(message,cause)
@@ -281,22 +292,101 @@ SPIRALCRAFT.app = (function(self) {
       
     );
   
-  
   /*
-   * A View manages the interaction between the framework and a DOM node.
+   * Adornment
+   *   
+   *  An adornment is an object that modifies some aspect of a view such as 
+   *    DOM element attribute values or CSS classes as appropriate to an interactive
+   *    state
+   */
+  self.Adornment = SC.extend
+    (self.Component
+    ,function(view,conf)
+    {
+      var defaultConf={  };
+      self.Component.call(this,SC.copy(defaultConf,conf));
+      this.peer=view.peer;
+      this.node=view.node;
+      this.view=view;
+    }
+    ,new function() 
+    { 
+      this.class={ name: "spiralcraft.app.Adornment" };
+
+      /*
+       * init
+       */
+      this.init = function() 
+      { 
+        this._super();
+        
+        if (this.conf.model)
+        {
+          
+          if (SC.isAssignableFrom(SC.webui.Channel,this.conf.model))
+          { this.model=this.conf.model;
+          }
+          else if (typeof this.conf.model == "string" )
+          {
+            this.model
+              =new SC.webui.Channel
+                (new Function("return "+this.conf.model).bind(this)
+                ,new Function("_",this.conf.model+"=_").bind(this)
+                );
+          }
+        }
+        
+        if (this.conf.modelFn)
+        { 
+          this.model=this.conf.modelFn.call(this);
+          if (this.model==null)
+          { console.log("modelFn returned null",this.conf.modelFn);
+          }
+        }
+        
+        if (this.model)
+        { this.model.observe(this.modelHandler.bind(this));
+        }
+      }
+      
+      this.update = function() 
+      { 
+        if (this.conf.update)
+        { this.conf.update.call(this,this.model?this.model.get():null);
+        }
+      }
+      
+      this.modelHandler = function(event)
+      { this.update();
+      }
+      
+    }  
+  );
+
+  /*
+   * View
+   *   
+   *   A View manages the interaction between the framework and a DOM node.
    */
   self.View = SC.extend
     (self.Component
     ,function(peer,node,conf) 
     { 
       var defaultConf={ autoRefresh: true };
+      if (conf.refreshEvents)
+      { 
+        defaultConf.autoRefresh=false;
+        defaultConf.refreshOnInit=false;
+      }
+      
       self.Component.call(this,SC.copy(defaultConf,conf));
       this.peer=peer;
       this.node=node;
       this.model=null;
+      this.adornments=[];
       this.parentView=null;
       this.onEnteringFocusSubscribed=false;
-      this.refreshOnEnteringFocus;
+      this.refreshOnEnteringFocus=false;
     }
     ,new function() 
     { 
@@ -329,6 +419,7 @@ SPIRALCRAFT.app = (function(self) {
         
         if (this.conf.model)
         {
+          
           if (SC.isAssignableFrom(SC.webui.Channel,this.conf.model))
           { this.model=this.conf.model;
           }
@@ -337,7 +428,7 @@ SPIRALCRAFT.app = (function(self) {
             this.model
               =new SC.webui.Channel
                 (new Function("return "+this.conf.model).bind(this)
-                ,null
+                ,new Function("_",this.conf.model+"=_").bind(this)
                 );
           }
           else if (typeof this.conf.model == "number" )
@@ -369,6 +460,10 @@ SPIRALCRAFT.app = (function(self) {
           }
         }
         
+        if (this.conf.modelFn)
+        { this.model=this.conf.modelFn.call(this);
+        }
+        
         if (!this.onEnteringFocusSubscribed)
         {
           if (
@@ -380,11 +475,59 @@ SPIRALCRAFT.app = (function(self) {
           }
         }
         
-        if (this.conf.refreshOnInit)
+        this.initModelDependents();
+        
+        if (this.conf.classes)
+        {
+          this.conf.classes.forEach
+            (function(clazz)
+              { 
+                if (typeof clazz == "string")
+                { this.peer.addClass(clazz);
+                }
+                else if (typeof clazz == "function")
+                { this.peer.addClass(clazz.call(this))
+                }
+                else
+                { console.log("Unknown object in View.conf.classes",clazz)
+                }
+              }.bind(this)
+            )
+        }
+        
+        if (this.conf.refreshOnModelChange)
+        { this.model.observe(function(event) { this.refresh() }.bind(this));
+        }
+        
+        if (this.conf.adornments)
+        {
+          this.conf.adornments.forEach
+            (function(_) 
+              {
+                var ad=new self.Adornment(this,_);
+                this.adornments.push(ad);
+                ad.init();
+              }.bind(this)
+            );
+        }
+        
+        if (this.conf.refreshOnInit
+            || (this.conf.refreshEvents
+                && this.conf.refreshEvents.indexOf("init")>-1
+                )
+            )
         { this.refresh();
         }
       }
 
+      /*
+       * initModelDependents
+       * 
+       *   Overide to initialize anything dependent on the bound model. Called
+       *     after the model is set up but before adornments are initialized.
+       */
+      this.initModelDependents = function() { }
+      
       /*
        * View.dispose()
        */
@@ -500,10 +643,23 @@ SPIRALCRAFT.app = (function(self) {
       {
         if (this.checkVisible() || this.conf.renderWhenHidden)
         {
-          if (this.model)
-          { this.renderTemplate(this.model.get());
-          }
+          this.updateContents();
+          this.adornments.forEach(function(_) {_.update()});
         }
+      }
+      
+      /*
+       * View.updateContents
+       */
+      this.updateContents = function()
+      { 
+        if (this.conf.textContentFn)
+        { this.node.textContent=this.conf.textContentFn.call(this);
+        }
+        if (this.conf.htmlContentFn)
+        { this.node.htmlContent=this.conf.htmlContentFn.call(this);
+        }
+        
       }
       
       /*
@@ -515,8 +671,12 @@ SPIRALCRAFT.app = (function(self) {
        */
       this.renderTemplate = function(data)
       {
-        if (!data)
-        { return;
+        if (!data && data!="")
+        { 
+          if (this.conf.trace)
+          { console.log("No template data to render",data,this);
+          }
+          return;
         }
         
       
@@ -619,6 +779,35 @@ SPIRALCRAFT.app = (function(self) {
   );
   
   /*
+   * Template 
+   * 
+   *   Renders dynamic data from a model into a template 
+   */
+  self.Template = SC.extend
+    (self.View
+    ,function(peer,node,conf)
+    {
+      self.View.call(this,peer,node,conf);
+      
+    }
+    ,new function()
+    { 
+      this.updateContents=function()
+      { 
+        this._super();
+        if (this.model)
+        { this.renderTemplate(this.model.get());
+        }
+      }
+    }
+    ,function()
+    { 
+      SC.webui.registerView
+        ("template",function(p,n,c) { return new this(p,n,c); }.bind(this));
+    }
+    );
+        
+  /*
    * Container groups several components into some form of interaction model.
    */
   self.Container = SC.extend
@@ -626,8 +815,6 @@ SPIRALCRAFT.app = (function(self) {
     ,function(peer,node,conf) 
     { 
       self.View.call(this,peer,node,conf);
-      this.peer=peer;
-      this.node=node;
       if (this.conf.trace) 
         console.log("Constructing "+(typeof this)+JSON.stringify(this));
     }
@@ -1240,6 +1427,7 @@ SPIRALCRAFT.app = (function(self) {
         this.click = function() {
           // console.log("Click",this);
           this.conf.onClick.call(this);
+          return false;
         }
       }
       ,function()
@@ -1250,14 +1438,15 @@ SPIRALCRAFT.app = (function(self) {
     );
 
   /*
-   * BoundInput: A control used to edit data stored somewhere else
+   * BoundInput
+   *  
+   *   A control used to edit data stored somewhere else
    */
   self.BoundInput = SC.extend
     (self.View
       ,function(peer,node,conf)
       {
         self.View.call(this,peer,node,conf);
-        this.binding = new SC.webui.DataBinding(node,peer,conf.source,conf.setter);
       }
       ,new function()
       {
@@ -1265,14 +1454,44 @@ SPIRALCRAFT.app = (function(self) {
         
         this.init = function()
         { 
-          this._super();
-          if (this.conf.refreshOnInit)
-          { this.refresh();
+          this.control=this.contextView(self.BoundControl);
+          if (this.control!=null)
+          { this.control.registerInput(this);
           }
+          this._super();
+        }
+
+        this.initModelDependents = function()
+        {
+          if (this.model==null)
+          {
+            if (this.control!=null)
+            { this.model=this.control.buffer;
+            }
+          }
+          if (this.model!=null)
+          { this.binding = new SC.webui.DataBinding(this.node,this.peer,this.model);
+          }
+          else if (this.conf.source)
+          { 
+            this.binding 
+              = new SC.webui.DataBinding
+                (this.node
+                ,this.peer
+                ,this.conf.source
+                ,this.conf.setter
+                );
+          }
+          
         }
 
         this.refresh = function() 
-        { this.binding.updateControl();
+        { 
+          if (!this.binding)
+          { console.log("No binding for ",this);
+          }
+          this.binding.updateControl();
+          this._super();
         }
       }
       ,function()
@@ -1281,6 +1500,365 @@ SPIRALCRAFT.app = (function(self) {
           ("boundInput",function(p,n,c) { return new this(p,n,c); }.bind(this));
       }
     );
+  
+  /*
+   * ControlLabel
+   * 
+   *    A label for a control
+   */
+  self.ControlLabel = SC.extend
+    (self.View
+      ,function(peer,node,conf)
+      {
+        self.View.call(this,peer,node,conf);
+      }
+      ,new function()
+      {
+        this.class = { name: "spiralcraft.app.BoundControl" };
+        
+        this.init = function()
+        { 
+          this._super();
+          this.control=this.contextView(self.BoundControl);
+          if (this.control!=null)
+          { this.control.registerLabel(this);
+          }
+        }
+      }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("controlLabel",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
+    );
+  
+  /*
+   * BoundControl
+   * 
+   *   A Container for data editing controls which coordinates 
+   *     interactive event handling and validation state. 
+   */
+  self.BoundControl = SC.extend
+    (self.Container
+      ,function(peer,node,conf)
+      {
+        self.Container.call(this,peer,node,conf);
+        this.buffer=null;
+        this.message=null;
+        this.status=null;
+        this.lastValue=null;
+        this.rules=[];
+        this.labelView=null;
+        this.inputView=null;
+        this.form=null;
+        if (this.conf.rules)
+        { 
+          this.conf.rules.forEach
+           (function(rule) {this.rules.push(new self.ValidationRule(rule))}.bind(this)
+           )
+        }
+        
+      }
+      ,new function()
+      {
+        this.class = { name: "spiralcraft.app.BoundControl" };
+        
+        this.init = function()
+        { 
+          this._super();
+          this.form=this.contextView(self.FormContainer);
+          if (this.form)
+          { this.form.registerControl(this);
+          }
+        }
+        
+        this.postInit = function()
+        {
+          this._super();
+          if (this.labelView && this.inputView)
+          {
+            this.labelView.node.setAttribute("for",this.inputView.node.id);
+          }
+        }
+        this.initModelDependents = function()
+        {
+          this.buffer
+            =new SC.webui.Channel
+              (this.bufferGet.bind(this)
+              ,this.bufferSet.bind(this)
+              );     
+          this.message=new SC.webui.Value();
+          this.status=new SC.webui.Value();
+        }
 
+        this.registerInput=function(view)
+        { this.inputView=view;
+        }
+        
+        this.registerLabel=function(view)
+        { this.labelView=view;
+        }
+        
+        this.refresh = function() 
+        { this._super();
+        }
+        
+        /*
+         * Called via the buffer when a child requests the property value
+         */
+        this.bufferGet = function()
+        {
+          var val=this.model.get();
+          this.lastValue=val;
+          return val;
+        }
+        
+        /*
+         * Called via the buffer when a child is setting a property value
+         */
+        this.bufferSet = function(value)
+        { 
+          var lastStatus=this.status.get();
+          var valid=this.validate(value,"change");
+          var set=false;
+          if (valid)
+          {
+            this.lastValue=value;
+            set=this.model.set(value);
+            
+          }
+          if (this.status.get()!=lastStatus)
+          { 
+            if (this.form)
+            { this.form.controlValidationStatusChanged(valid);
+            }
+          }
+          return set;
+        }
+        
+        /*
+         * Validate rules associated with the given scope
+         */
+        this.validateScope = function(scope)
+        {
+          var lastStatus=this.status.get();
+          var valid=this.validate(this.model.get(),scope);
+          if (this.status.get()!=lastStatus)
+          { 
+            if (this.form)
+            { this.form.controlValidationStatusChanged(valid);
+            }
+          }
+        }
+        
+        /*
+         * Runs validation on an input
+         */
+        this.validate = function(value,scope)
+        {
+          var pass=true;
+          var msg="";
+          var status="pass";
+          for (var i in this.rules)
+          {
+            var rule=this.rules[i];
+            if (scope=="input" && rule.onInput!=true)
+            { continue;
+            }
+            if (scope=="change" && rule.onChange!=true)
+            { continue;
+            }
+            if (scope=="action" && rule.onAction!=true)
+            { continue;
+            }
+            
+            var rulePass=rule.test.call(this,value);
+            if (!rulePass)
+            {
+              pass=false;
+              if (typeof rule.message == "string")
+              { msg=rule.message;
+              }
+              else if (typeof rule.message == "function")
+              { msg=rule.message.call(this,value);
+              }
+              status=rule.status;
+              break;
+            }
+          }
+          this.message.set(msg);
+          this.status.set(status);
+          return pass;
+        }
+        
+        
+      }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("boundControl",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
+    );
+  
+  /*
+   * ValidationRule
+   */
+  self.ValidationRule = SC.extend
+    (SC.SCObject
+      ,function(def)
+      {
+        if (!def)
+        { throw new Error("ValidationRule constructor argument is null");
+        }
+        SC.SCObject.call(this);
+        this.test=def.test?def.test:function(_){return true};
+        this.message=def.message?def.message:"Invalid input";
+        this.status=def.status?def.status:"warning";
+        this.onChange=def.onChange!=null?def.onChange:true;
+        this.onInput=def.onInput!=null?def.onInput:false;
+        this.onAction=def.onAction!=null?def.onAction:true;
+      }
+      ,new function()
+      {
+        
+      }
+    );
+  
+  /*
+   * FormContainer
+   * 
+   *   Coordinates a set of input controls and actions related to some user activity. 
+   */
+  self.FormContainer = SC.extend
+    (self.Container
+      ,function(peer,node,conf)
+      {
+        self.Container.call(this,peer,node,conf);
+        this.controls=[];
+        this.pass=new SC.webui.Value();
+      }
+      ,new function()
+      {
+        this.class = { name: "spiralcraft.app.FormContainer" };
+        
+        this.init = function()
+        { this._super();
+        }
+        
+        this.registerControl = function(control)
+        { this.controls.push(control);
+        }
+        
+        /*
+         * scanValidationStatus
+         * 
+         *   Scan controls for their validation status.
+         *   
+         *   Return false if any controls are in failure state, true if all
+         *     controls have passed, or null if any controls are unvalidated
+         */
+        this.scanValidationStatus = function()
+        {
+          var none=false;
+          var pass=false;
+          for (var i in this.controls)
+          { 
+            var status=this.controls[i].status.get();
+            if (status=="pass")
+            { pass=true;
+            }
+            else if (status)
+            { 
+              if (this.conf.trace)
+              { console.log("fail Status for ",this.controls[i].peer.id,status);
+              }
+              fail=true;
+              return false;
+            }
+            else
+            { none=true;
+            }
+          }
+          if (none)
+          { 
+            if (this.conf.trace)
+            { console.log("validation status=none");
+            }
+            return null;
+          }
+          else if (pass)
+          { return true;
+          }
+        }
+        
+        /*
+         * controlValidationStatusChanged(pass)
+         * 
+         *   Called by child controls when the validation status changes after data
+         *     is updated
+         */
+        this.controlValidationStatusChanged = function(pass)
+        {
+          if (pass)
+          {
+            if (this.pass!=true)
+            { 
+              var globPass=this.scanValidationStatus();
+              if (globPass!=this.pass)
+              { 
+                this.pass.set(globPass);
+                this.validationStatusChanged();
+              }
+              
+            }
+          }
+          else
+          {
+            this.pass.set(false);
+            this.validationStatusChanged();
+          }
+        }
+        
+        this.validationStatusChanged = function()
+        {
+          if (this.conf.trace)
+          { console.log("Validation status changed ",this.pass.get());
+          }
+        }
+        
+        /*
+         * validateAndAction
+         * 
+         *   Perform an action after performing all action-stage validation on 
+         *      controls
+         */
+        this.validateAndAction = function(action)
+        {
+          var pass=true;
+          for (var i in this.controls)
+          {
+            pass=this.controls[i].validateScope("action");
+            if (pass==false)
+            { 
+              this.pass.set(false);
+              this.validationStatusChanged();
+              if (this.conf.trace)
+              { console.log("Control failed ",this.controls[i].peer.id);
+              }
+              break;
+            }
+          }
+          if (pass!=false)
+          { action(); 
+          }
+        }
+      }
+      ,function()
+      { 
+        SC.webui.registerView
+          ("formContainer",function(p,n,c) { return new this(p,n,c); }.bind(this));
+      }
+    );
+  
   return self;
 }(SPIRALCRAFT.app || {}));

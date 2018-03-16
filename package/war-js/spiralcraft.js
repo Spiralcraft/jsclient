@@ -16,7 +16,7 @@
 //Portions adapted from:
 //
 //JavaScript: The Definitive Guide by David Flanagan
-//Copyright � 1997-2000, O'Reilly & Associates
+//Copyright c 1997-2000, O'Reilly & Associates
 //
 //"These programs come with no warranty of any sort. They are copyrighted 
 //material and are not in the public domain. As long as you retain the 
@@ -187,6 +187,7 @@ var SPIRALCRAFT = (function (self) {
     { callback(iterable[i]);
     }
   }
+  $SC.forEach=self.forEach;
   
   /*
    * map(array,fn)
@@ -202,6 +203,7 @@ var SPIRALCRAFT = (function (self) {
     }
     return ret;
   }
+  $SC.map=self.map;
   
   /*
    * find(array,fn)
@@ -214,6 +216,7 @@ var SPIRALCRAFT = (function (self) {
     { if (fn(array[i])) return array[i];
     }
   }
+  $SC.find=self.find;
   
   /*
    * isAssignableFrom
@@ -241,6 +244,7 @@ var SPIRALCRAFT = (function (self) {
     while (opc);
 
   }
+  $SC.isAssignableFrom=self.isAssignableFrom;
   
   /**
    * Add all own properties in src to target 
@@ -253,7 +257,8 @@ var SPIRALCRAFT = (function (self) {
     }
     return target;
   }
-    
+  $SC.copy=self.copy;
+  
   /**
    * Abstract base class for Spiralcraft objects
    */
@@ -280,7 +285,15 @@ var SPIRALCRAFT = (function (self) {
         { 
           SPIRALCRAFT.forEach
             (this.observers
-            ,function(listener) { listener.notify(event) }
+            ,function(listener) 
+              { 
+                if (listener.notify)
+                { listener.notify(event);
+                }
+                else
+                { listener(event);
+                }
+              }
             );
         }
       }
@@ -1368,11 +1381,14 @@ SPIRALCRAFT.webui = (function(self) {
     (SC.SCObject
     ,function(getter,setter) 
     { 
+      SC.SCObject.call(this);
       this.getter=getter;
       this.setter=setter;
     }
     ,new function()
     {
+      this.class={ name: "spiralcraft.webui.Channel" };
+
       /*
        * handleSourceEvent(event)
        *
@@ -1389,7 +1405,7 @@ SPIRALCRAFT.webui = (function(self) {
        * get: Get the value from the source
        */
       this.get = function()
-      { return this.getter();
+      { return this.getter?this.getter():null;
       }
       
       /*
@@ -1397,30 +1413,72 @@ SPIRALCRAFT.webui = (function(self) {
        */
       this.set=function(value)
       { 
-        this.setter(value);
-        this.sourceChanged(this.getter());
+        if (this.setter)
+        {
+          this.setter(value);
+          this.sourceChanged(this.getter());
+        }
+        else
+        { console.log("Setter is null",new Error())
+        }
       }
       
       /*
        * sourceChanged: Called internally when the source value changes
        */
       this.sourceChanged = function(value)
-      { notifyObservers({ type:"change", oldValue:undefined, newValue:value});
+      { this.notifyObservers({ type:"change", oldValue:undefined, newValue:value});
       }
     }
     );
-  
+
+  /*
+   * Value
+   * 
+   *   A Channel that stores a value
+   */
+  self.Value = SC.extend
+    (self.Channel
+    ,function() 
+    { 
+      self.Channel.call(this,this._get.bind(this),this._set.bind(this));
+      this.value=null;
+    }
+    ,new function()
+    {
+      this.class={ name: "spiralcraft.webui.Value" };
+      this._get = function() { return this.value };
+      this._set = function(value) { this.value=value };
+    }
+    );
+
   /*
    * DataBinding 
    * 
    *   Binds a DOM element to a data location 
    */
-  self.DataBinding = function (element, peer, expr, setter) {
-    this.expr = expr;
+  self.DataBinding = function (element, peer, getter, setter)
+  {
+    var expr;
+    if (typeof getter == "string")
+    {
+      expr = getter;
+      this.get = new Function("return "+getter);
+    }
+    else if (SPIRALCRAFT.isAssignableFrom(self.Channel,getter))
+    { this.channel=getter;
+    }
+    else if (typeof getter == "function")
+    { this.get = getter;
+    }
+
     this.peer = peer;
-    this.get = new Function("return "+expr+";");
     if (setter)
     { this.set=new Function("value",setter);
+    }
+    else if (this.channel)
+    {
+      
     }
     else
     {
@@ -1486,7 +1544,12 @@ SPIRALCRAFT.webui = (function(self) {
     // Return the current value of the data model
     //
     this.getModelValue = function() {
-      return this.get.call(this.peer);
+      if (this.channel)
+      { return this.channel.get();
+      }
+      else
+      { return this.get.call(this.peer);
+      }
     }
     
     
@@ -1522,8 +1585,14 @@ SPIRALCRAFT.webui = (function(self) {
     //
     //  Update the data model
     //
-    this.setModelValue = function(value) {
-      this.set.call(this.peer,value);
+    this.setModelValue = function(value) 
+    {
+      if (this.channel)
+      { this.channel.set(value);
+      }
+      else
+      { this.set.call(this.peer,value);
+      }
     };
     
     //
@@ -1586,7 +1655,10 @@ SPIRALCRAFT.webui = (function(self) {
     catch (e) 
     {
       console.log("Caught "+e+" parsing "+attrValue);
-      throw e;
+      var ne = new Error("Error parsing ",attrValue);
+      ne.stack += '\nCaused by: '+e.stack;
+      ne.cause=e;
+      throw ne;      
     }
   }
   
@@ -1600,11 +1672,13 @@ SPIRALCRAFT.webui = (function(self) {
   // This updates bound controls with data changes to the model.
   self.processTree = function (node) {
    
+   var init=false;
    if (!node.scnid)
    { 
      node.scnid=self.SCNID++;
      // console.log(node.scnid+" ("+node.nodeType+") "+node);
      self.initNode(node);
+     init=true;
    }
    
    if (node.bound)
@@ -1625,7 +1699,11 @@ SPIRALCRAFT.webui = (function(self) {
        { console.log("Calling subtreeProcessed",node,peer,peer.view);
        }
        try
-       { peer.view.subtreeProcessed();
+       { 
+         if (init)
+         { peer.view.postInit();
+         }
+         peer.view.subtreeProcessed();
        }
        catch (e)
        { console.log("Exception processing DOM: ",e,node,peer,peer.view);
@@ -1880,7 +1958,7 @@ SPIRALCRAFT.SHA256 = (function(self) {
 
   self.digestUTF8 = (function (b) {
     
-    return Sha256.hash(b);
+    return SPIRALCRAFT.sha256impl.hash(b);
 
   });
   
@@ -1956,7 +2034,8 @@ SPIRALCRAFT.json = (function(self) {
 /*         http://csrc.nist.gov/groups/ST/toolkit/examples.html                                   */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-var Sha256 = {};  // Sha256 namespace
+SPIRALCRAFT.sha256impl = (function(Sha256) { 
+  
 
 /**
  * Generates SHA-256 hash of string
@@ -1964,9 +2043,10 @@ var Sha256 = {};  // Sha256 namespace
  * @param {String} msg                String to be hashed
  * @returns {String}                  Hash of msg as hex character string
  */
-Sha256.hash = function(msg) {
+Sha256.hash = function(msg) 
+  {
     
-    // constants [�4.2.2]
+    // constants [4.2.2]
     var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
              0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
              0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
@@ -1975,15 +2055,15 @@ Sha256.hash = function(msg) {
              0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
              0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
              0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
-    // initial hash value [�5.3.1]
+    // initial hash value [5.3.1]
     var H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
 
     // PREPROCESSING 
  
-    msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [�5.1.1]
+    msg += String.fromCharCode(0x80);  // add trailing '1' bit (+ 0's padding) to string [5.1.1]
 
-    // convert string msg into 512-bit/16-integer blocks arrays of ints [�5.2.1]
-    var l = msg.length/4 + 2;  // length (in 32-bit integers) of msg + �1� + appended length
+    // convert string msg into 512-bit/16-integer blocks arrays of ints [5.2.1]
+    var l = msg.length/4 + 2;  // length (in 32-bit integers) of msg + 1 + appended length
     var N = Math.ceil(l/16);   // number of 16-integer-blocks required to hold 'l' ints
     var M = new Array(N);
 
@@ -1994,14 +2074,14 @@ Sha256.hash = function(msg) {
                       (msg.charCodeAt(i*64+j*4+2)<<8) | (msg.charCodeAt(i*64+j*4+3));
         } // note running off the end of msg is ok 'cos bitwise ops on NaN return 0
     }
-    // add length (in bits) into final pair of 32-bit integers (big-endian) [�5.1.1]
+    // add length (in bits) into final pair of 32-bit integers (big-endian) [5.1.1]
     // note: most significant word would be (len-1)*8 >>> 32, but since JS converts
     // bitwise-op args to 32 bits, we need to simulate this by arithmetic operators
     M[N-1][14] = ((msg.length-1)*8) / Math.pow(2, 32); M[N-1][14] = Math.floor(M[N-1][14])
     M[N-1][15] = ((msg.length-1)*8) & 0xffffffff;
 
 
-    // HASH COMPUTATION [�6.1.2]
+    // HASH COMPUTATION [6.1.2]
 
     var W = new Array(64); var a, b, c, d, e, f, g, h;
     for (var i=0; i<N; i++) {
@@ -2039,27 +2119,29 @@ Sha256.hash = function(msg) {
 
     return Sha256.toHexStr(H[0]) + Sha256.toHexStr(H[1]) + Sha256.toHexStr(H[2]) + Sha256.toHexStr(H[3]) + 
            Sha256.toHexStr(H[4]) + Sha256.toHexStr(H[5]) + Sha256.toHexStr(H[6]) + Sha256.toHexStr(H[7]);
-}
+  }
 
-Sha256.ROTR = function(n, x) { return (x >>> n) | (x << (32-n)); }
-Sha256.Sigma0 = function(x) { return Sha256.ROTR(2,  x) ^ Sha256.ROTR(13, x) ^ Sha256.ROTR(22, x); }
-Sha256.Sigma1 = function(x) { return Sha256.ROTR(6,  x) ^ Sha256.ROTR(11, x) ^ Sha256.ROTR(25, x); }
-Sha256.sigma0 = function(x) { return Sha256.ROTR(7,  x) ^ Sha256.ROTR(18, x) ^ (x>>>3);  }
-Sha256.sigma1 = function(x) { return Sha256.ROTR(17, x) ^ Sha256.ROTR(19, x) ^ (x>>>10); }
-Sha256.Ch = function(x, y, z)  { return (x & y) ^ (~x & z); }
-Sha256.Maj = function(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); }
+  Sha256.ROTR = function(n, x) { return (x >>> n) | (x << (32-n)); }
+  Sha256.Sigma0 = function(x) { return Sha256.ROTR(2,  x) ^ Sha256.ROTR(13, x) ^ Sha256.ROTR(22, x); }
+  Sha256.Sigma1 = function(x) { return Sha256.ROTR(6,  x) ^ Sha256.ROTR(11, x) ^ Sha256.ROTR(25, x); }
+  Sha256.sigma0 = function(x) { return Sha256.ROTR(7,  x) ^ Sha256.ROTR(18, x) ^ (x>>>3);  }
+  Sha256.sigma1 = function(x) { return Sha256.ROTR(17, x) ^ Sha256.ROTR(19, x) ^ (x>>>10); }
+  Sha256.Ch = function(x, y, z)  { return (x & y) ^ (~x & z); }
+  Sha256.Maj = function(x, y, z) { return (x & y) ^ (x & z) ^ (y & z); }
 
-//
-// hexadecimal representation of a number 
-//   (note toString(16) is implementation-dependant, and  
-//   in IE returns signed numbers when used on full words)
-//
-Sha256.toHexStr = function(n) {
-  var s="", v;
-  for (var i=7; i>=0; i--) { v = (n>>>(i*4)) & 0xf; s += v.toString(16); }
-  return s;
-}
+  //
+  // hexadecimal representation of a number 
+  //   (note toString(16) is implementation-dependant, and  
+  //   in IE returns signed numbers when used on full words)
+  //
+  Sha256.toHexStr = function(n) {
+    var s="", v;
+    for (var i=7; i>=0; i--) { v = (n>>>(i*4)) & 0xf; s += v.toString(16); }
+    return s;
+  }
 
+  return Sha256;
+}(SPIRALCRAFT.sha256impl || {}));  // Sha256 namespace
 
 /**
  * Date.parse with progressive enhancement for ISO 8601 <https://github.com/csnover/js-iso8601>

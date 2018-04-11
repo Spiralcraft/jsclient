@@ -1128,20 +1128,15 @@ SPIRALCRAFT.webui = (function(self) {
     /*
      * Peer.hide
      * 
-     *   Hide an element and save the "display" attribute later unhiding.
+     *   Hide an element 
      */
     this.hide = function()
-    { 
-      this.display=this.element().style.display;
-      this.element().style.display="none";
+    { this.addClass("sc-hidden");
       
     }
     
     this.unhide = function()
-    {
-      if (this.display)
-      { this.element().style.display=this.display;
-      }
+    { this.removeClass("sc-hidden");
     }
     
     /*

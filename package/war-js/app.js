@@ -1459,6 +1459,7 @@ SPIRALCRAFT.app = (function(self) {
           { this.control.registerInput(this);
           }
           this._super();
+          this.node.addEventListener("blur",this.leftFocus.bind(this));
         }
 
         this.initModelDependents = function()
@@ -1485,6 +1486,12 @@ SPIRALCRAFT.app = (function(self) {
           
         }
 
+        this.leftFocus = function()
+        { 
+          if (this.conf.trace) { console.log("Left focus"); }
+          this.notifyListeners("blur");
+        }
+        
         this.refresh = function() 
         { 
           if (!this.binding)
@@ -1579,6 +1586,10 @@ SPIRALCRAFT.app = (function(self) {
           {
             this.labelView.node.setAttribute("for",this.inputView.node.id);
           }
+          if (this.inputView)
+          { 
+            this.inputView.addListener("blur",this.inputLostFocus.bind(this));
+          }
         }
         this.initModelDependents = function()
         {
@@ -1597,6 +1608,14 @@ SPIRALCRAFT.app = (function(self) {
         
         this.registerLabel=function(view)
         { this.labelView=view;
+        }
+        
+        
+        this.inputLostFocus = function()
+        {
+          if (this.conf.trace) { console.log("control lost focus") }
+          
+          this.validateScope("leave");
         }
         
         this.refresh = function() 
@@ -1643,12 +1662,14 @@ SPIRALCRAFT.app = (function(self) {
         {
           var lastStatus=this.status.get();
           var valid=this.validate(this.model.get(),scope);
-          if (this.status.get()!=lastStatus)
+          var newStatus=this.status.get();
+          if (newStatus!=lastStatus)
           { 
             if (this.form)
             { this.form.controlValidationStatusChanged(valid);
             }
           }
+          return valid;
         }
         
         /*
@@ -1663,6 +1684,9 @@ SPIRALCRAFT.app = (function(self) {
           {
             var rule=this.rules[i];
             if (scope=="input" && rule.onInput!=true)
+            { continue;
+            }
+            if (scope=="leave" && rule.onLeave!=true)
             { continue;
             }
             if (scope=="change" && rule.onChange!=true)
@@ -1715,6 +1739,7 @@ SPIRALCRAFT.app = (function(self) {
         this.message=def.message?def.message:"Invalid input";
         this.status=def.status?def.status:"warning";
         this.onChange=def.onChange!=null?def.onChange:true;
+        this.onLeave=def.onLeave!=null?def.onLeave:false;
         this.onInput=def.onInput!=null?def.onInput:false;
         this.onAction=def.onAction!=null?def.onAction:true;
       }
@@ -1849,7 +1874,9 @@ SPIRALCRAFT.app = (function(self) {
             }
           }
           if (pass!=false)
-          { action(); 
+          { 
+            if (this.conf.trace) { console.log("Passed! performing action") }
+            action(); 
           }
         }
       }

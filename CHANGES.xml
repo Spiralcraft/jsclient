@@ -15,6 +15,32 @@
     
       <scm:Change>
       
+        <revision>-dev28
+        </revision>
+        
+        <notes>
+          <scm:Note>Use a css class to control hiding vs. element.style
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/package/war-js/spiralcraft.js
+        </path>
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev28
+        </revision>
+        
+        <notes>
+          <scm:Note>Trigger validation when leaving field
+          </scm:Note>
+        </notes>
+        <path>source/spiralcraft/package/war-js/app.js
+        </path>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev27
         </revision>
         

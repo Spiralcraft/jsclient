@@ -1697,6 +1697,7 @@ SPIRALCRAFT.app = (function(self) {
           var pass=true;
           var msg="";
           var status="pass";
+          var ct=0;
           for (var i in this.rules)
           {
             var rule=this.rules[i];
@@ -1715,7 +1716,7 @@ SPIRALCRAFT.app = (function(self) {
             if (scope=="action" && rule.onAction!=true)
             { continue;
             }
-            
+            ct++;
             var rulePass=rule.test.call(this,value);
             if (!rulePass)
             {
@@ -1730,9 +1731,18 @@ SPIRALCRAFT.app = (function(self) {
               break;
             }
           }
-          this.message.set(msg);
-          this.status.set(status);
-          return pass;
+          if (ct>0 || this.rules.length==0)
+          {
+            this.message.set(msg);
+            this.status.set(status);
+            return pass;
+          }
+          else
+          {
+            // No change in state if not rules this stage
+            return this.pass.get();
+          }
+          
         }
         
         

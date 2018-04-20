@@ -1697,29 +1697,22 @@ SPIRALCRAFT.webui = (function(self) {
     { 
       this.controlSetter 
         = function (value) 
-          { 
-            console.log(this.peer.element());
-            this.peer.element().textContent=this.outConverter(value); 
+          { this.peer.element().textContent=this.outConverter(value); 
           }
       this.controlGetter 
         = function() 
-          { 
-            console.log(this.peer.element());
-            return this.inConverter(this.peer.element().textContent); 
+          { return this.inConverter(this.peer.element().textContent); 
           }
     }
     else
     { 
       this.controlSetter 
         = function (value) 
-        { 
-          console.log(this.peer.element());
-          this.peer.element().value=this.outConverter(value); 
+        { this.peer.element().value=this.outConverter(value); 
         }
       this.controlGetter 
         = function() 
-        { 
-          return this.inConverter(this.peer.element().value); 
+        { return this.inConverter(this.peer.element().value); 
         }
     }
     element.addEventListener("change", this, false);

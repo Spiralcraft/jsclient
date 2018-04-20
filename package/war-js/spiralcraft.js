@@ -113,7 +113,8 @@ var SPIRALCRAFT = (function (self) {
   var _private = self._private = self._private || {};
   
   var _debug = true;
-
+  var SC=self;
+  
   self.defaultOptions =
   {
     scanDOMOnInit: false
@@ -179,6 +180,85 @@ var SPIRALCRAFT = (function (self) {
     { clinitFn.call(constructorFn);
     }
     return constructorFn;
+  }
+  
+  /*
+   * createFromDescriptorString
+   * 
+   *   Creates an object defined by a String that evaluates to a descriptor. Uses
+   *     createFromDescriptor() after evaluating the String
+   *     
+   */
+  self.createFromDescriptorString= function(descriptorString,thisContext)
+  {
+    var descriptor=new Function("return "+descriptorString.trim()).call(thisContext);
+    return SC.createFromDescriptor(descriptor,thisContext);
+  }
+  
+  /*
+   * createFromDescriptor
+   * 
+   *   Create an object from a descriptor. 
+   *   
+   *   A descriptor consists of standard property values for the constructed object
+   *     as well as special properties that determine how the resulting object
+   *     will be constructed from the descriptor.
+   *
+   *   { $$: template } - Make a copy of the template object 
+   *   
+   */
+  self.createFromDescriptor = function(descriptor,thisContext)
+  {
+    var spawn=null;
+
+    if (descriptor.$)
+    {
+      if (typeof descriptor.$ == "object")
+      {
+        // Create a new object using the referenced base object as a prototype
+        spawn=Object.createInstance(descriptor.$);
+      }
+      else if (typeof descriptor.$ == "function")
+      {
+        // Create a new object using this function as a constructor
+        spawn=new descriptor.$;
+      }
+    }
+    
+    
+    if (descriptor.$$)
+    {
+      // Make a deep-copy of the referenced base object and overide / augment it
+      //   with the data in the descriptor.
+
+      spawn=self.copy
+        (spawn
+        ,descriptor.$$
+        ,self.deepCopyFn
+        );
+    }
+    
+    if (spawn)
+    {
+      spawn=self.copy
+        (spawn
+        ,descriptor
+        ,self.deepCopyFn
+        ,function(target,src,copyPropFn,copyValueFn)
+          { 
+            if (!Array.isArray(src) 
+                  && (typeof src == "object" || typeof src == "function")
+               )
+            { src=self.createFromDescriptor(src,thisContext);
+            }
+            return self.copy(target,src,copyPropFn,copyValueFn);
+          }
+        );
+      return spawn;
+    }
+    
+    
+    return descriptor;
   }
   
   self.forEach = function(iterable,callback)
@@ -247,17 +327,116 @@ var SPIRALCRAFT = (function (self) {
   $SC.isAssignableFrom=self.isAssignableFrom;
   
   /**
-   * Add all own properties in src to target 
+   * copy
+   * 
+   *   Add all own properties in src to target.
+   *   
+   *   If the optional copyPropFn(target,src,key,copyPropFn,copyValueFn) is provided,
+   *     it will be used to copy the source property value to the target.
+   *     
+   *   If the optional copyValueFn(target,src,copyPropFn,copyValueFn) is provided,
+   *     it will be used to copy the source properties to the target
    */
-  self.copy = function(target,src)
+  self.copy = function(target,src,copyPropFn,copyValueFn)
   {
-    if (!target) target={};
-    for (var key in src)
-    { if (src.hasOwnProperty(key)) target[key] = src[key];
+    if (!copyValueFn && copyPropFn)
+    { copyValueFn=self.copy; 
+    }
+    if (src==null || src===undefined)
+    { return target;
+    }
+    if (!target)
+    {
+      if (Array.isArray(src))
+      { target=[]
+      }
+      else if (typeof src == "object")
+      { 
+        if (src.clone)
+        { return src.clone();
+        }
+        else if (src instanceof Date)
+        { return new Date(src.getTime());
+        }
+        target=Object.create(Object.getPrototypeOf(src));      
+      }
+      else if (typeof src == "function")
+      { 
+        if (src.clone)
+        { return src.clone();
+        }
+        else
+        { return src;
+        }
+      }
+      else
+      { console.log("Unknown type to copy = "+typeof src,src,target);
+      }
+    }
+
+    if (Array.isArray(src))
+    {
+      for (var i=0;i<src.length;i++)
+      {
+        if (copyPropFn)
+        { copyPropFn(target,src,i,copyPropFn,copyValueFn);
+        }
+        else if (copyValueFn)
+        { target[i] = copyValueFn(target[i],src[i],copyPropFn,copyValueFn);
+        }
+        else
+        { target[i] = src[i];      
+        }
+      }
+    }
+    else
+    {
+      for (var key in src)
+      { 
+        if (src.hasOwnProperty(key)) 
+        { 
+          if (copyPropFn)
+          { copyPropFn(target,src,key,copyPropFn,copyValueFn);
+          }
+          else if (copyValueFn)
+          { target[key] = copyValueFn(target[key],src[key],copyPropFn,copyValueFn);
+          }
+          else
+          { target[key] = src[key];      
+          }
+        }
+      }
     }
     return target;
   }
   $SC.copy=self.copy;
+  
+  self.deepCopyFn = function(target,src,key,copyPropFn,copyValueFn)
+  {
+    var srcValue=src[key];
+    if (srcValue === undefined)
+    { return;
+    }
+    else if (srcValue==null)
+    { 
+      target[key]=null;
+      return;
+    }
+    if (Array.isArray(srcValue))
+    {
+      target[key]=[];
+      target[key]=copyValueFn(target[key],srcValue,copyPropFn,copyValueFn);     
+    }
+    else if (typeof srcValue=="object")
+    { target[key]=copyValueFn(target[key],srcValue,copyPropFn,copyValueFn);
+    }
+    else if (typeof srcValue=="function")
+    { target[key]=copyValueFn(target[key],srcValue,copyPropFn,copyValueFn);
+    }
+    else
+    { target[key] = srcValue;
+    }
+  }
   
   /**
    * Abstract base class for Spiralcraft objects
@@ -302,6 +481,10 @@ var SPIRALCRAFT = (function (self) {
   
   self.Exception = function(message)
   { this.message=message;
+  }
+  
+  self.identityFn = function(value)
+  { return value; 
   }
   
   return self; 
@@ -1452,8 +1635,18 @@ SPIRALCRAFT.webui = (function(self) {
    * 
    *   Binds a DOM element to a data location 
    */
-  self.DataBinding = function (element, peer, getter, setter)
+  self.DataBinding = function (element, peer, getter, setter, inConverter, outConverter)
   {
+    this.inConverter=inConverter;
+    this.outConverter=outConverter;
+    
+    if (!this.inConverter)
+    { this.inConverter=function(value) { return (value === undefined) ? null : value };
+    }
+    if (!this.outConverter)
+    { this.outConverter=function(value) { return (value === undefined) ? null : value };
+    }
+    
     var expr;
     if (typeof getter == "string")
     {
@@ -1501,10 +1694,33 @@ SPIRALCRAFT.webui = (function(self) {
         ,"H6"
         ].indexOf(element.tagName)>-1
        )
-    { this.controlSetter = function (value) { this.textContent=value; };
+    { 
+      this.controlSetter 
+        = function (value) 
+          { 
+            console.log(this.peer.element());
+            this.peer.element().textContent=this.outConverter(value); 
+          }
+      this.controlGetter 
+        = function() 
+          { 
+            console.log(this.peer.element());
+            return this.inConverter(this.peer.element().textContent); 
+          }
     }
     else
-    { this.controlSetter = function (value) { this.value=value; };
+    { 
+      this.controlSetter 
+        = function (value) 
+        { 
+          console.log(this.peer.element());
+          this.peer.element().value=this.outConverter(value); 
+        }
+      this.controlGetter 
+        = function() 
+        { 
+          return this.inConverter(this.peer.element().value); 
+        }
     }
     element.addEventListener("change", this, false);
   }
@@ -1529,8 +1745,8 @@ SPIRALCRAFT.webui = (function(self) {
     //
     //  Return the current value of the bound control
     //
-    this.getControlValue = function() {
-      return this.peer.element().value;
+    this.getControlValue = function() 
+    { return this.controlGetter();
     }
     
     //
@@ -1572,7 +1788,7 @@ SPIRALCRAFT.webui = (function(self) {
     //  Called when the value of the model changed
     //
     this.setControlValue = function(value) {
-      this.controlSetter.call(this.peer.element(),value);
+      this.controlSetter(value);
     };
     
     //
@@ -1625,7 +1841,7 @@ SPIRALCRAFT.webui = (function(self) {
     try 
     {
       var peer=self.activatePeer(node);
-      viewConf=new Function("return "+attrValue.trim()).call(peer);
+      viewConf=SC.createFromDescriptorString(attrValue,peer);
       if (viewConf.trace) 
         console.log("View: "+JSON.stringify(viewConf));
       if (viewConf.contextName)

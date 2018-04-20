@@ -1460,6 +1460,7 @@ SPIRALCRAFT.app = (function(self) {
           }
           this._super();
           this.node.addEventListener("blur",this.leftFocus.bind(this));
+          this.node.addEventListener("focus",this.gainedFocus.bind(this));
         }
 
         this.initModelDependents = function()
@@ -1492,6 +1493,12 @@ SPIRALCRAFT.app = (function(self) {
           this.notifyListeners("blur");
         }
         
+        this.gainedFocus = function()
+        { 
+          if (this.conf.trace) { console.log("Gained focus"); }
+          this.notifyListeners("focus");
+        }
+        
         this.refresh = function() 
         { 
           if (!this.binding)
@@ -1499,6 +1506,10 @@ SPIRALCRAFT.app = (function(self) {
           }
           this.binding.updateControl();
           this._super();
+        }
+        
+        this.getValue = function()
+        { return this.binding.getControlValue();
         }
       }
       ,function()
@@ -1589,6 +1600,7 @@ SPIRALCRAFT.app = (function(self) {
           if (this.inputView)
           { 
             this.inputView.addListener("blur",this.inputLostFocus.bind(this));
+            this.inputView.addListener("focus",this.inputGainedFocus.bind(this));
           }
         }
         this.initModelDependents = function()
@@ -1611,10 +1623,14 @@ SPIRALCRAFT.app = (function(self) {
         }
         
         
+        this.inputGainedFocus = function()
+        {
+          if (this.conf.trace) { console.log("control gained focus") }
+          this.validateScope("enter");
+        }
         this.inputLostFocus = function()
         {
           if (this.conf.trace) { console.log("control lost focus") }
-          
           this.validateScope("leave");
         }
         
@@ -1640,12 +1656,13 @@ SPIRALCRAFT.app = (function(self) {
           var lastStatus=this.status.get();
           var valid=this.validate(value,"change");
           var set=false;
+          if (this.conf.trace) { console.log("control value changed to ",value) }
           if (valid)
           {
             this.lastValue=value;
             set=this.model.set(value);
-            
           }
+            
           if (this.status.get()!=lastStatus)
           { 
             if (this.form)
@@ -1661,7 +1678,7 @@ SPIRALCRAFT.app = (function(self) {
         this.validateScope = function(scope)
         {
           var lastStatus=this.status.get();
-          var valid=this.validate(this.model.get(),scope);
+          var valid=this.validate(this.inputView.getValue(),scope);
           var newStatus=this.status.get();
           if (newStatus!=lastStatus)
           { 
@@ -1684,6 +1701,9 @@ SPIRALCRAFT.app = (function(self) {
           {
             var rule=this.rules[i];
             if (scope=="input" && rule.onInput!=true)
+            { continue;
+            }
+            if (scope=="enter" && rule.onEnter!=true)
             { continue;
             }
             if (scope=="leave" && rule.onLeave!=true)
@@ -1739,13 +1759,13 @@ SPIRALCRAFT.app = (function(self) {
         this.message=def.message?def.message:"Invalid input";
         this.status=def.status?def.status:"warning";
         this.onChange=def.onChange!=null?def.onChange:true;
-        this.onLeave=def.onLeave!=null?def.onLeave:false;
+        this.onEnter=def.onEnter!=null?def.onEnter:false;
+        this.onLeave=def.onLeave!=null?def.onLeave:true;
         this.onInput=def.onInput!=null?def.onInput:false;
         this.onAction=def.onAction!=null?def.onAction:true;
       }
       ,new function()
       {
-        
       }
     );
   

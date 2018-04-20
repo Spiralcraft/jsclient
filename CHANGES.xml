@@ -15,6 +15,38 @@
     
       <scm:Change>
       
+        <revision>-dev29
+        </revision>
+        
+        <notes>
+          <scm:Note>Input Validation at all stages uses value contained in control
+            and not value contained in model.
+          </scm:Note>
+          <scm:Note>Add "enter" validation stage to for rules to run when entering
+            a field.
+          </scm:Note>
+          <scm:Note>Add shorthand mechanism ($ and $$ properties) in object literals
+            when using object literal descriptors to configure components and other
+            infrastructure.
+          </scm:Note>
+          <scm:Note>Enhanced SC.copy function to support deep copying. 
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>app.js
+          </URI>
+          <URI>spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+
+      <scm:Change>
+      
         <revision>-dev28
         </revision>
         

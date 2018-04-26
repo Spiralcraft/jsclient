@@ -1740,7 +1740,7 @@ SPIRALCRAFT.app = (function(self) {
           else
           {
             // No change in state if not rules this stage
-            return this.pass.get();
+            return this.status.get()=="pass";
           }
           
         }

@@ -285,6 +285,31 @@ var SPIRALCRAFT = (function (self) {
   }
   $SC.map=self.map;
   
+  /* 
+   * put(array,obj)
+   * 
+   *   Add the object to the array if it doesn't exist. Return the index of the
+   *     object in the array
+   */
+  self.put = function(array,val)
+  {
+    if (!array.includes(val))
+    { return array.push(val);
+    }
+    else return array.indexOf(val);
+  }
+  
+  self.remove = function(array,item)
+  {
+    var i=array.indexOf(item);
+    if (i>=0)
+    { return array.splice(i,1);
+    }
+    else
+    { return array;
+    }
+  }
+  
   /*
    * find(array,fn)
    * 

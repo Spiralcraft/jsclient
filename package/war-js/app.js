@@ -942,7 +942,9 @@ SPIRALCRAFT.app = (function(self) {
 
         this.updateFromStateMachine = function()
         {
-          this.selectView(this.stateMachine.selectedState.config.viewName);
+          if (this.stateMachine)
+          { this.selectView(this.stateMachine.selectedState.config.viewName);
+          }
         }
         
         this.notify = function(event)
@@ -1566,6 +1568,7 @@ SPIRALCRAFT.app = (function(self) {
         this.status=null;
         this.lastValue=null;
         this.rules=[];
+        this.failedRules=[];
         this.labelView=null;
         this.inputView=null;
         this.form=null;
@@ -1716,10 +1719,50 @@ SPIRALCRAFT.app = (function(self) {
             if (scope=="action" && rule.onAction!=true)
             { continue;
             }
-            ct++;
-            var rulePass=rule.test.call(this,value);
-            if (!rulePass)
+            var rulePass=rule.test.call
+              (this
+              ,value
+              ,function(pass,status,message) 
+                { 
+                  // Async callback for rule
+                  if (pass==false)
+                  {
+                    var lastStatus=this.status.get();
+                    this.status.set(status); 
+                    this.message.set(message);
+                    SC.put(this.failedRules,rule);
+                    if (status!=lastStatus)
+                    {
+                      if (this.form)
+                      { this.form.controlValidationStatusChanged(false);
+                      }                      
+                    }
+                  }
+                  else if (pass==true)
+                  {
+                    this.failedRules=SC.remove(this.failedRules,rule);
+                    if (this.failedRules.length==0)
+                    {
+                      var lastStatus=this.status.get();
+                      this.status.set(status); 
+                      this.message.set(message);
+                      if (status!=lastStatus)
+                      {
+                        if (this.form)
+                        { this.form.controlValidationStatusChanged(true);
+                        }                      
+                      }
+                      
+                    }
+                  }
+                }.bind(this)
+              );
+            if (rulePass==false || rulePass==true)
+            { ct++;
+            }
+            if (rulePass==false)
             {
+              SC.put(this.failedRules,rule);
               pass=false;
               if (typeof rule.message == "string")
               { msg=rule.message;
@@ -1729,6 +1772,9 @@ SPIRALCRAFT.app = (function(self) {
               }
               status=rule.status;
               break;
+            }
+            if (rulePass==true)
+            { this.failedRules=SC.remove(this.failedRules,rule);
             }
           }
           if (ct>0 || this.rules.length==0)

@@ -15,6 +15,27 @@
     
       <scm:Change>
       
+        <revision>-dev30
+        </revision>
+        
+        <notes>
+          <scm:Note>Support asynchronous rule validation
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>app.js
+          </URI>
+          <URI>spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev29
         </revision>
         

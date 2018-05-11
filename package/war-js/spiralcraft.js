@@ -1729,6 +1729,19 @@ SPIRALCRAFT.webui = (function(self) {
           { return this.inConverter(this.peer.element().textContent); 
           }
     }
+    else if (element.tagName=="INPUT" && element.type=="checkbox")
+    {
+      this.controlSetter 
+        = function (value) 
+      { this.peer.element().checked=this.outConverter(value); 
+      }
+      
+      this.controlGetter 
+        = function() 
+      { return this.inConverter(this.peer.element().checked); 
+      }
+      
+    }
     else
     { 
       this.controlSetter 

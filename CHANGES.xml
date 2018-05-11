@@ -19,6 +19,25 @@
         </revision>
         
         <notes>
+          <scm:Note>Properly bind checkbox input to boolean control
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev30
+        </revision>
+        
+        <notes>
           <scm:Note>Support asynchronous rule validation
           </scm:Note>
         </notes>

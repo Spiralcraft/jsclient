@@ -15,6 +15,25 @@
     
       <scm:Change>
       
+        <revision>-dev31
+        </revision>
+        
+        <notes>
+          <scm:Note>Added SPIRALCRAFT.sanitize module for text sanitization
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev30
         </revision>
         

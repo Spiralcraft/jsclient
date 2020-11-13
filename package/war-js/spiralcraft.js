@@ -2076,7 +2076,27 @@ SPIRALCRAFT.webui = (function(self) {
   return self;
 }(SPIRALCRAFT.webui || {}));
 
-
+/*
+ * Content sanitization functions
+ */
+SPIRALCRAFT.sanitize = (function(self) {
+  var displayTagsToEscape = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;'
+  };
+  
+  self.escapeUserContentForDisplay = function (content) {
+    return str.replace
+      (/[&<>]/g
+      , function(tag) { 
+          return displayTagsToEscape[tag] || tag;
+          }
+      );
+    
+  }
+  return self;  
+}(SPIRALCRAFT.sanitize || {}));
 
 /*
  * Functions for interacting with Spiralcraft security subsystem

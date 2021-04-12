@@ -2105,7 +2105,42 @@ SPIRALCRAFT.security = (function(self) {
   
   self.realmName = "";
   
-  self.realmDigest = (function(challenge,username,clearpass) {
+  /*
+   * Hash a cleartext password for the specified number of rounds.
+   *
+   * Used to create a stored password digest salted with the realmname+username
+   */
+  self.basePasswordDigest = (function(clearpass,username,rounds) {
+    var salt=SPIRALCRAFT.UTF8.decode(this.realmName+username.toLowerCase());
+    var digest=clearpass;
+    if (!rounds || rounds==0)
+    { rounds=1;
+    }
+    for (var i=0;i<rounds;i++)
+    { digest=SPIRALCRAFT.SHA256.digestUTF8(salt+digest);
+    }
+    return digest;
+  });
+  
+  
+  /*
+   * Computes a password digest with an optional shared one-time challenge to be used
+   *   for secure password transmission.
+   */
+  self.challengePasswordDigest = (function(clearpass,username,challenge,rounds) {
+    var digest=self.basePasswordDigest(clearpass,username,rounds);
+    if (challenge!=null && challenge.length>0) {
+      digest=SPIRALCRAFT.SHA256.digestUTF8(challenge+digest);    
+    }
+    return digest;
+  });
+  
+  /*
+   * Hash a cleartext password along with an optional challenge.
+   *
+   * (Legacy implementation retained for compatibility)
+   */
+  self.realmDigest = (function(challenge,username,clearpass,rounds) {
     var digest=
       SPIRALCRAFT.SHA256.digestUTF8(
         SPIRALCRAFT.UTF8.decode(
@@ -2407,7 +2442,7 @@ Sha256.hash = function(msg)
 
 /**
  * Date.parse with progressive enhancement for ISO 8601 <https://github.com/csnover/js-iso8601>
- * © 2011 Colin Snover <http://zetafleet.com>
+ * � 2011 Colin Snover <http://zetafleet.com>
  * Released under MIT license.
  */
 (function (Date, undefined) {
@@ -2415,12 +2450,12 @@ Sha256.hash = function(msg)
     Date.parse = function (date) {
         var timestamp, struct, minutesOffset = 0;
 
-        // ES5 §15.9.4.2 states that the string should attempt to be parsed as a Date Time String Format string
-        // before falling back to any implementation-specific date parsing, so that’s what we do, even if native
+        // ES5 15.9.4.2 states that the string should attempt to be parsed as a Date Time String Format string
+        // before falling back to any implementation-specific date parsing, so that's what we do, even if native
         // implementations could be faster
-        //              1 YYYY                2 MM       3 DD           4 HH    5 mm       6 ss        7 msec        8 Z 9 ±    10 tzHH    11 tzmm
+        //              1 YYYY                2 MM       3 DD           4 HH    5 mm       6 ss        7 msec        8 Z 9  ±    10 tzHH    11 tzmm
         if ((struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec(date))) {
-            // avoid NaN timestamps caused by “undefined” values being passed to Date.UTC
+            // avoid NaN timestamps caused by undefined values being passed to Date.UTC
             for (var i = 0, k; (k = numericKeys[i]); ++i) {
                 struct[k] = +struct[k] || 0;
             }

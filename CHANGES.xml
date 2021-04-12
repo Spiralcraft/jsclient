@@ -15,6 +15,40 @@
     
       <scm:Change>
       
+        <revision>-dev32
+        </revision>
+        
+        <notes>
+          <scm:Note>Module resolution plugin for rollup.js that uses VFS concept
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/rollup-vfs/rollup-vfs.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev32
+        </revision>
+        
+        <notes>
+          <scm:Note>Factored some password encryption logic to consider SHA rounds
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js
+        </path>
+        
+        <resources>
+          <URI>spiralcraft.js
+          </URI>
+        </resources>
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev31
         </revision>
         

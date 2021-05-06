@@ -15,6 +15,21 @@
     
       <scm:Change>
       
+        <revision>-dev33
+        </revision>
+        
+        <notes>
+          <scm:Note>Allow VFS packages to remap to default resolver
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/rollup-vfs/rollup-vfs.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev32
         </revision>
         

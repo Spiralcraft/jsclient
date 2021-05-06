@@ -15,7 +15,6 @@ export default function(options)
       , npm: 'npm/node_modules'
       },
     verbose: true
-      
   };
 
   options 
@@ -33,8 +32,13 @@ export default function(options)
   let remapPoints={};
   let remaps={};
   let importer;
+  let resolve;
   
-  function resolve(f,importerParam)
+  function buildStart(options)
+  { resolve=this.resolve;
+  }
+  
+  async function resolveId(f,importerParam)
   {
     importer=importerParam;
     if (f.startsWith(defaultMatchPrefix) || f.startsWith(idMatchPrefix))
@@ -56,14 +60,14 @@ export default function(options)
       }
       let pathInfo=path.parse(f.substring(firstSlash+1));
       if (root)
-      { return resolveInRoot(root,pathInfo);
+      { return await resolveInRoot(root,pathInfo);
       }
       else
       {
         for (var i=0;i<options.searchRoots.length;i++)
         {
           let searchPath=options.roots[options.searchRoots[i]];
-          let foundFile=resolveInRoot(searchPath,pathInfo);
+          let foundFile=await resolveInRoot(searchPath,pathInfo);
           if (foundFile)
           { return foundFile;
           }
@@ -74,7 +78,7 @@ export default function(options)
     }
   }
   
-  function resolveInRoot(searchPath,pathInfo)
+  async function resolveInRoot(searchPath,pathInfo)
   {
     let searchDir
       =path.isAbsolute(searchPath)
@@ -92,7 +96,7 @@ export default function(options)
     }
     else
     {
-      let vfsFile=resolveInVfs(searchDir,searchFilename);
+      let vfsFile=await resolveInVfs(searchDir,searchFilename);
       if (vfsFile)
       { foundFile=vfsFile;
       }
@@ -135,7 +139,7 @@ export default function(options)
     
   }
 
-  function resolveInVfs(searchDir,searchFilename)
+  async function resolveInVfs(searchDir,searchFilename)
   {
     let vfsRemapping = vfsRemap(searchDir);
     if (vfsRemapping)
@@ -145,9 +149,21 @@ export default function(options)
       let searchFile = baseParentPath+"/"+searchFilename;
       let foundFile;
       if (searchFile.startsWith(options.vfsPrefix))
-      { foundFile=resolve(searchFile,importer);
+      { foundFile=await resolveId(searchFile,importer);
       }
-      else if (!searchFile.isAbsolute())
+      else if (searchFile.startsWith("@@"))
+      { 
+        // Remove leading "@@" and skip vfs
+        searchFile=searchFile.substring(2);
+        const resolution= await resolve(searchFile,importer, { skipSelf: true });
+        if (resolution) 
+        { foundFile=resolution.id;
+        }
+        else
+        { console.log("VFS: "+searchFile+" was not resolved by rollup resolver");
+        }
+      }
+      else if (!path.isAbsolute(searchFile))
       { 
         searchFile=slash(path.resolve(searchFile));
         if (verbose) console.log("Searching: "+searchFile);
@@ -157,7 +173,7 @@ export default function(options)
           foundFile=searchFile;
         }
         else
-        { foundFile=resolveInVfs(rewrittenDir,searchFilename);
+        { foundFile=await resolveInVfs(baseParentPath,searchFilename);
         }
       }
       else
@@ -169,7 +185,7 @@ export default function(options)
           foundFile=searchFile;
         }
         else
-        { foundFile=resolveInVfs(rewrittenDir,searchFilename);
+        { foundFile=await resolveInVfs(baseParentPath,searchFilename);
         }
       }
       return foundFile;
@@ -195,7 +211,7 @@ export default function(options)
       let rawdata = fs.readFileSync(vfsInfoFile);
       let vfsInfo = JSON.parse(rawdata);
       vfsInfo.location = searchDir;
-      console.log("Found package: "+vfsInfo+" in "+searchDir);
+      console.log("Found package: "+JSON.stringify(vfsInfo));
       remapPoints[searchDir]=vfsInfo;
       return vfsInfo;
     }
@@ -230,6 +246,7 @@ export default function(options)
   
   return {
     name: 'vfsResolve',
-    resolveId: (f,importer) => resolve(f,importer)
+    async resolveId(f,importer) { return await resolveId(f,importer) },
+    buildStart(options) { buildStart.call(this,options) }
   }
 }

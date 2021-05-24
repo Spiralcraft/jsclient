@@ -204,14 +204,14 @@ export default function(options)
     { return null;
     }
 
-    console.log("Searching for vfs remap in "+searchDir+" (cache="+remapPoint+")");
+    if (verbose) console.log("Searching for vfs remap in "+searchDir+" (cache="+remapPoint+")");
     let vfsInfoFile=searchDir+"/vfs.json";
     if (fs.existsSync(vfsInfoFile))
     {
       let rawdata = fs.readFileSync(vfsInfoFile);
       let vfsInfo = JSON.parse(rawdata);
       vfsInfo.location = searchDir;
-      console.log("Found package: "+JSON.stringify(vfsInfo));
+      if (verbose) console.log("Found package: "+JSON.stringify(vfsInfo));
       remapPoints[searchDir]=vfsInfo;
       return vfsInfo;
     }

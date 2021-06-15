@@ -10,6 +10,15 @@ export default function(options)
     remove: (keyValue,callback) => { if (callback) callback() },
     pkey: (o) => { return Object.values(o)[0] },
     cache: false,
+    meta:
+    {
+      fields:
+      {
+      
+      }
+    },
+    postFields: null,
+
   };
 
   options 
@@ -25,6 +34,8 @@ export default function(options)
   const post=options.post;
   const remove=options.remove;
   const pkey=options.pkey;
+  const meta=options.meta;
+  const postFields=options.postFields;
     
   const showAll = (callback) =>
   { fetchAll(callback);
@@ -35,7 +46,17 @@ export default function(options)
   }
 
   const edited = (obj,callback) =>
-  { post(pkey(obj),obj,callback);
+  { 
+    let postObj;
+    if (postFields)
+    { 
+      postObj={};
+      postFields.forEach((f) => postObj[f]=obj[f]);
+    }
+    else
+    { postObj=obj;
+    }
+    post(pkey(obj),postObj,callback);
   }
   
   const trashed = (keyValue,callback) =>
@@ -51,6 +72,7 @@ export default function(options)
     edited,
     trashed,
     init,
+    meta,
   };
   
   return ret;

@@ -7,6 +7,7 @@ export default function(options)
   
   let app;
   let thisView;
+  const superOptions=options;
   
   const fetchAll 
     = (callback) =>
@@ -34,9 +35,10 @@ export default function(options)
   {
     console.log("Posting "+JSON.stringify(obj));
     let params={ ...obj };
+    // Don't put primary key in data
     params.id=undefined;
     app.api.postJSON
-      (apiEndpoint+(!obj.id?"-":keyValue[0])
+      (apiEndpoint+(!keyValue[0]?"-":keyValue[0])
       , (r)=> 
         { callback(r);
         }
@@ -65,6 +67,7 @@ export default function(options)
       post,
       remove,
       pkey: o => [o.id],
+      ...superOptions
     };
     
     thisView=view(options);

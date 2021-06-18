@@ -19,6 +19,28 @@
         </revision>
         
         <notes>
+          <scm:Note>Modularized session watchdog for SPAs with error handling
+          </scm:Note>
+        </notes>
+        
+        <path>package
+        </path>
+        
+        <resources>
+          <URI>lib-js/spiralcraft/webui/sessionWatchdog.js
+          </URI>
+          <URI>war-js/spiralcraft.js
+          </URI>
+        </resources>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev34
+        </revision>
+        
+        <notes>
           <scm:Note>Added basic infrastructure to bind ui components to data ops
           </scm:Note>
         </notes>

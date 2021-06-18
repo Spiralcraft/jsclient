@@ -33,7 +33,7 @@ export default function(options={})
     SPIRALCRAFT.ajax.get(
       SPIRALCRAFT.uri.addQueryTerm(syncLocation+"","oob","sessionSync"),
       function(data) {
-        console.log("Got "+data+" from server");
+        // console.log("Got "+data+" from server");
         sessionExpiration=parseInt(data);
         if (sessionExpiration>0) {
           if (sessionSyncCount==0) {
@@ -72,7 +72,7 @@ export default function(options={})
     if (delay==0)
     { delay=pollInterval;
     }
-    console.log("Checking in "+delay+" ms");
+    // console.log("Checking in "+delay+" ms");
     timeoutRef=window.setTimeout(checkSession,delay);
     sessionSyncCount++;
   }

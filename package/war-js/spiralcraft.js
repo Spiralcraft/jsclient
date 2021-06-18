@@ -862,8 +862,12 @@ SPIRALCRAFT.http = (function(self) {
     if (options.method == null)
     { options.method = "GET";
     }
+    if (!options.onError)
+    { options.onError = (status,request) => {};
+    }
     
     var _request=_newXmlHttpRequest();
+    _request.onerror = () => { options.onError(_request.status, _request) };
     
     var _callbacks = [
       options.onOpen, 
@@ -873,12 +877,17 @@ SPIRALCRAFT.http = (function(self) {
         if (_request.status >= 200 && _request.status < 300) {
           options.onSuccess(_request);
         }
-        if (_request.status == 409) {
-          alert("Session expired - resetting");
-          window.location.replace
-            (SPIRALCRAFT.uri.removeQueryParameter
-               (window.location.href,"lrs")
-            );
+        else if (_request.status >= 400)
+        { 
+          if (_request.status == 409) 
+          {
+            alert("Session expired - resetting");
+            window.location.replace
+              (SPIRALCRAFT.uri.removeQueryParameter
+                 (window.location.href,"lrs")
+              );
+          }
+          options.onError(_request.status,_request);
         }
         if (options.onComplete) { 
           options.onComplete(_request); 
@@ -966,18 +975,25 @@ SPIRALCRAFT.http = (function(self) {
 
 SPIRALCRAFT.ajax = (function (self) { 
   
-  self.get = function(location,callback) {
+  self.defaultError= (status,request) =>
+  { console.log("Error "+status+":"+request.responseText+" from "+request);
+  }
+  
+  self.get = function(location,callback,error=self.defaultError) {
     SPIRALCRAFT.http.request(
       location,
       { 
         onSuccess: function(request) { 
           callback(request.responseText); 
+        },
+        onError: function(status,request)
+        { error(status,request.responseText);
         }
       }
     );
   };
   
-  self.post = function(location,callback,content) {
+  self.post = function(location,callback,content,error=self.defaultError) {
     SPIRALCRAFT.http.request(
       location,
       {
@@ -985,7 +1001,11 @@ SPIRALCRAFT.ajax = (function (self) {
         data: content,
         onSuccess: function(request) { 
           callback(request.responseText); 
-        }
+        },
+        onError: function(status,request)
+        { error(status,request.responseText);
+        },
+        
       }
     );
   };
@@ -993,7 +1013,7 @@ SPIRALCRAFT.ajax = (function (self) {
   /*
    * Post data contained in a generic object by encoding fields
    */
-  self.postForm = function(location,callback,formObject) {
+  self.postForm = function(location,callback,formObject,error=self.defaultError) {
     if (formObject instanceof FormData) {
       SPIRALCRAFT.ajax.postFormData(location,callback,formObject);
     } else {
@@ -1006,7 +1026,11 @@ SPIRALCRAFT.ajax = (function (self) {
           data: SPIRALCRAFT.http.encodeFormData(formObject),
           onSuccess: function(request) { 
             callback(request.responseText); 
-          }
+          },
+          onError: function(status,request)
+          { error(status,request.responseText);
+          },
+          
         }
       );
     }
@@ -1016,7 +1040,7 @@ SPIRALCRAFT.ajax = (function (self) {
   /*
    * Post data contained in the FormData object
    */
-  self.postFormData = function(location,callback,formData) {
+  self.postFormData = function(location,callback,formData,error=self.defaultError) {
     SPIRALCRAFT.http.request(
         location,
         {
@@ -1024,7 +1048,11 @@ SPIRALCRAFT.ajax = (function (self) {
           data: formData,
           onSuccess: function(request) { 
             callback(request.responseText); 
-          }
+          },
+          onError: function(status,request)
+          { error(status,request.responseText);
+          },
+          
         }
       );
     

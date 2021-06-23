@@ -975,8 +975,8 @@ SPIRALCRAFT.http = (function(self) {
 
 SPIRALCRAFT.ajax = (function (self) { 
   
-  self.defaultError= (status,request) =>
-  { console.log("Error "+status+":"+request.responseText+" from "+request);
+  self.defaultError= (status,responseText) =>
+  { console.log("Error "+status+":"+responseText);
   }
   
   self.get = function(location,callback,error=self.defaultError) {

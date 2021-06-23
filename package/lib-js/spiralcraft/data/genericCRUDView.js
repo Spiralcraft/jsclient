@@ -9,6 +9,16 @@ export default function(options)
   let thisView;
   const superOptions=options;
   
+  const normalizeKey = (key) =>
+  {
+    if (Array.isArray(key))
+    { return key;
+    }
+    else
+    { return [key];
+    }
+  }
+  
   const fetchAll 
     = (callback) =>
     {
@@ -23,6 +33,7 @@ export default function(options)
   const fetchForPkey
     = (keyValue,callback) =>
     {
+      keyValue=normalizeKey(keyValue);
       app.api.getJSON
         (apiEndpoint+keyValue[0]
         , (r)=> 
@@ -34,6 +45,7 @@ export default function(options)
   const post = (keyValue,obj,callback) =>
   {
     console.log("Posting "+JSON.stringify(obj));
+    keyValue=normalizeKey(keyValue);
     let params={ ...obj };
     // Don't put primary key in data
     params.id=undefined;
@@ -49,12 +61,39 @@ export default function(options)
     
   const remove = (keyValue,callback) =>
   {
+    keyValue=normalizeKey(keyValue);    
     app.api.postJSON
       (apiEndpoint+keyValue[0]+"/.delete"
       , (r)=> 
         { callback(r);
         }
       );
+  }
+  
+  const sendCall = (key,method,params,callback) =>
+  {
+    key=normalizeKey(key);
+    const endpoint = apiEndpoint+(key?key[0]+"/":"")+"."+method;
+    if (params)
+    {
+      app.api.postJSON
+        (endpoint
+        ,(r)=> 
+          { callback(r);
+          }
+        ,params
+        );
+    }
+    else
+    {
+      app.api.getJSON
+        (endpoint
+        ,(r)=> 
+          { callback(r);
+          }
+        );
+    }
+        
   }
     
   return function(appContext)
@@ -66,6 +105,7 @@ export default function(options)
       fetchForPkey,
       post,
       remove,
+      sendCall,
       pkey: o => [o.id],
       ...superOptions
     };

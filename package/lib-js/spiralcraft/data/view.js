@@ -9,6 +9,7 @@ export default function(options)
     post: (obj,callback) => { if (callback) callback(obj) },
     remove: (keyValue,callback) => { if (callback) callback() },
     pkey: (o) => { return Object.values(o)[0] },
+    sendCall: (key,method,params,callback) => { console.log("sendCall not defined") },
     cache: false,
     meta:
     {
@@ -36,6 +37,7 @@ export default function(options)
   const pkey=options.pkey;
   const meta=options.meta;
   const postFields=options.postFields;
+  const sendCall=options.sendCall;
     
   const showAll = (callback) =>
   { fetchAll(callback);
@@ -59,6 +61,10 @@ export default function(options)
     post(pkey(obj),postObj,callback);
   }
   
+  const call = (key,method,params,callback) =>
+  { sendCall(key,method,params,callback);  
+  }
+  
   const trashed = (keyValue,callback) =>
   { remove(keyValue,callback);
   }
@@ -71,6 +77,7 @@ export default function(options)
     showForPkey,
     edited,
     trashed,
+    call,
     init,
     meta,
   };

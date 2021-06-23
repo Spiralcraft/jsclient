@@ -7,6 +7,7 @@ export default function(options={})
     reloadOnTimeout: true,
     onTimeout: () => { console.log("onTimeout: Session timed out"); },
     pollInterval: 60 * 1000,
+    connectFailedPollInterval: 5 * 1000,
     reloadLocation: window.location.href,
     onError: (status,responseText) => 
       { console.log("Error polling "+status+":"+responseText) 
@@ -19,6 +20,7 @@ export default function(options={})
   let reloadOnTimeout = options.reloadOnTimeout;
   let onTimeout = options.onTimeout;
   let pollInterval = options.pollInterval;
+  let connectFailedPollInterval = options.connectFailedPollInterval;
   let reloadLocation = options.reloadLocation;
   let onError = options.onError;
   
@@ -56,7 +58,12 @@ export default function(options={})
       function(status,responseText) {
         onError(status,responseText);
         if (sessionSyncCount==0) {
-          setTimer();
+          if (status!=0)
+          { setTimer();
+          }
+          else
+          { setConnectFailedTimer();
+          }
           // console.log("Rechecking session in "+((sessionExpiration-60000)/1000)+" seconds");
         }
         else
@@ -74,6 +81,12 @@ export default function(options={})
     }
     // console.log("Checking in "+delay+" ms");
     timeoutRef=window.setTimeout(checkSession,delay);
+    sessionSyncCount++;
+  }
+ 
+  const setConnectFailedTimer = () =>
+  { 
+    timeoutRef=window.setTimeout(checkSession,connectFailedPollInterval);
     sessionSyncCount++;
   }
   

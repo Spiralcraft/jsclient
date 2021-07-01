@@ -3,7 +3,8 @@ export default function(options={})
 {
   const defaults =
   {
-    syncLocation: SPIRALCRAFT.webui.syncLocation,
+    api: { getJSON: (loc,callback,err) => { console.log("No API provided") } },
+    syncLocation: "sync/",
     reloadOnTimeout: true,
     onTimeout: () => { console.log("onTimeout: Session timed out"); },
     pollInterval: 60 * 1000,
@@ -23,6 +24,7 @@ export default function(options={})
   let connectFailedPollInterval = options.connectFailedPollInterval;
   let reloadLocation = options.reloadLocation;
   let onError = options.onError;
+  let api = options.api;
   
   let sessionExpiration= SPIRALCRAFT.webui.sessionExpiration;
   let timeoutRef;
@@ -32,12 +34,12 @@ export default function(options={})
   const checkSession= () =>
   {
     sessionSyncCount--;
-    SPIRALCRAFT.ajax.get(
-      SPIRALCRAFT.uri.addQueryTerm(syncLocation+"","oob","sessionSync"),
+    api.getJSON(
+      syncLocation,
       function(data) {
         // console.log("Got "+data+" from server");
-        sessionExpiration=parseInt(data);
-        if (sessionExpiration>0) {
+        sessionExpiration=data.maxInactiveInterval;
+        if (sessionExpiration && sessionExpiration>0) {
           if (sessionSyncCount==0) {
             setTimer();
             // console.log("Rechecking session in "+((sessionExpiration-60000)/1000)+" seconds");

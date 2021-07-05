@@ -7,6 +7,11 @@ export default function(options)
   
   let app;
   let thisView;
+  let pkeyProp="id";
+  if (options.pkeyProp)
+  { pkeyProp=options.pkeyProp;
+  }
+
   const superOptions=options;
   
   const normalizeKey = (key) =>
@@ -48,7 +53,7 @@ export default function(options)
     keyValue=normalizeKey(keyValue);
     let params={ ...obj };
     // Don't put primary key in data
-    params.id=undefined;
+    params[pkeyProp]=undefined;
     app.api.postJSON
       (apiEndpoint+(!keyValue[0]?"-":keyValue[0])
       , (r)=> 
@@ -106,7 +111,7 @@ export default function(options)
       post,
       remove,
       sendCall,
-      pkey: o => [o.id],
+      pkey: o => [o[pkeyProp]],
       ...superOptions
     };
     

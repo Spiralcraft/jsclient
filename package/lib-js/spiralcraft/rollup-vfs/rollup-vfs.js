@@ -33,6 +33,7 @@ export default function(options)
   let remaps={};
   let importer;
   let resolve;
+  let resolveCache={};
   
   function buildStart(options)
   { resolve=this.resolve;
@@ -44,6 +45,9 @@ export default function(options)
     if (f.startsWith(defaultMatchPrefix) || f.startsWith(idMatchPrefix))
     {
       if (verbose) console.log("Resolving: "+f);
+      if (f in resolveCache)
+      { return resolveCache[f];
+      }
       let firstSlash=f.indexOf('/');
       let vfsPrefix=f.substring(0,firstSlash);
       // if (verbose) console.log("vfxPrefix="+vfsPrefix);
@@ -60,7 +64,10 @@ export default function(options)
       }
       let pathInfo=path.parse(f.substring(firstSlash+1));
       if (root)
-      { return await resolveInRoot(root,pathInfo);
+      { 
+        let ret=await resolveInRoot(root,pathInfo);
+        resolveCache[f]=ret;
+        return ret;
       }
       else
       {
@@ -69,11 +76,14 @@ export default function(options)
           let searchPath=options.roots[options.searchRoots[i]];
           let foundFile=await resolveInRoot(searchPath,pathInfo);
           if (foundFile)
-          { return foundFile;
+          { 
+            resolveCache[f]=foundFile;
+            return foundFile;
           }
         }
       }
       console.log('Could not resolve \''+f+'\' from \''+importer+'\'');
+      resolveCache[f]=null;
       return null;
     }
   }

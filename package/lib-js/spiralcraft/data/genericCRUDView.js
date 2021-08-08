@@ -77,8 +77,16 @@ export default function(options)
   
   const sendCall = (key,method,params,callback) =>
   {
-    key=normalizeKey(key);
-    const endpoint = apiEndpoint+(key?key[0]+"/":"")+"."+method;
+    let endpoint;
+    if (key === null || key === undefined )
+    { endpoint = apiEndpoint+"."+method;
+    }
+    else
+    {
+      key=normalizeKey(key);
+      endpoint = apiEndpoint+(key?key[0]+"/":"")+"."+method;
+    }
+    
     if (params)
     {
       app.api.postJSON

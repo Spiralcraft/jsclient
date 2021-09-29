@@ -38,6 +38,7 @@ export default function(options)
   const meta=options.meta;
   const postFields=options.postFields;
   const sendCall=options.sendCall;
+  const makeAPI=options.makeAPI;
     
   const showAll = (callback) =>
   { fetchAll(callback);
@@ -69,9 +70,14 @@ export default function(options)
   { remove(keyValue,callback);
   }
 
-  const init = () => { }
+  function init()
+  {
+    if (makeAPI)
+    { thisView.api=makeAPI();
+    }
+  }
   
-  let ret=
+  const thisView=
   { 
     showAll,
     showForPkey,
@@ -82,5 +88,5 @@ export default function(options)
     meta,
   };
   
-  return ret;
+  return thisView;
 }

@@ -1,5 +1,4 @@
 import view from '@vfs/spiralcraft/data/view.js';
-import cloneDeep from 'clone-deep';
 
 export default function(options)
 {
@@ -108,6 +107,14 @@ export default function(options)
     }
         
   }
+
+
+  function makeAPI()
+  {
+    if (superOptions.makeAPI)
+    { return superOptions.makeAPI(app,thisView);    
+    }
+  }
     
   return function(appContext)
   {
@@ -120,11 +127,12 @@ export default function(options)
       remove,
       sendCall,
       pkey: o => [o[pkeyProp]],
+      makeAPI,
       ...superOptions
     };
     
     thisView=view(options);
-  
+    
     return thisView;
   }
   

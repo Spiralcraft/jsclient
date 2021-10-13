@@ -3,6 +3,17 @@
  */
 
 
+function sub(channel,fn)
+{
+  channel.subs.push(fn);
+  fn(channel.get());
+  return () => channel.subs.splice(channel.subs.indexOf(fn),1);
+}
+
+function pub(subs,value)
+{ subs.map( fn => fn(value) );
+}
+
 function fieldAccessor(chain,name)
 {
   const channel =
@@ -17,8 +28,10 @@ function fieldAccessor(chain,name)
         { console.log(error,channel.getMeta());
         }
       },
-    set: (value) => { chain.get()[name]=value; return value; },
+    set: (value) => { chain.get()[name]=value; pub(channel.subs,value); return value; },
     getMeta: () => ({ type: "fieldAccessor", name: name, source: chain.getMeta() }),
+    sub: (fn) => sub(channel,fn),
+    subs: [],
   };
   return channel;
 }
@@ -31,6 +44,36 @@ function target()
     get: () => value,
     set: (newValue) => { value=newValue },
     getMeta: () => ({ type: "target", value: value }),
+  };
+  return channel;
+}
+
+function targetRef(fn)
+{
+  const channel =
+  {
+    get: () => fn(),
+    set: () => {},
+    getMeta: () => ({ type: "targetRef", source: fn }),
+  }
+  return channel;
+}
+
+function pipedAccessor(chain,piped)
+{
+  const path=piped.split(".");
+  for (name of path)
+  { 
+    chain=fieldAccessor(chain,name);
+  }
+  const channel =
+  {
+    get: () => chain.get(),
+    set: (value) => { value=chain.set(value); pub(channel.subs,value); return value; },
+    getMeta: () => ({ type: "piperdAccessor", name: name, chain: chain.getMeta(), }),
+    sub: (fn) => sub(channel,fn),
+    subs: [],
+
   };
   return channel;
 }
@@ -53,4 +96,4 @@ function pipedReference(piped)
   return channel;
 }
 
-export {fieldAccessor,target,pipedReference};
+export {fieldAccessor,target,targetRef,pipedAccessor,pipedReference};

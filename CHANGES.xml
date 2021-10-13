@@ -19,6 +19,21 @@
         </revision>
         
         <notes>
+          <scm:Note>Bidirectional data binding toolkit with pub-sub support
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/lang/expressions.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev34
+        </revision>
+        
+        <notes>
           <scm:Note>Utility to compute luminosity of colors for background matching
           </scm:Note>
         </notes>

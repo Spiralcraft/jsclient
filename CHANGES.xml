@@ -15,6 +15,21 @@
     
       <scm:Change>
       
+        <revision>-dev35
+        </revision>
+        
+        <notes>
+          <scm:Note>Function to count array elements that match a lambda filter
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/util/count.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev34
         </revision>
         

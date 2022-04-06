@@ -15,6 +15,21 @@
     
       <scm:Change>
       
+        <revision>-dev36
+        </revision>
+        
+        <notes>
+          <scm:Note>Added trace option to log HTTP request readystate changes
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev35
         </revision>
         

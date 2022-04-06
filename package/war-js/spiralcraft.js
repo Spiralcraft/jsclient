@@ -823,6 +823,8 @@ SPIRALCRAFT.dom = (function(self) {
  */
 SPIRALCRAFT.http = (function(self) {
   
+  self.trace = false;
+  
   var _factories = [
     function() { return new XMLHttpRequest(); },
     function() { return new ActiveXObject("Msxml2.XMLHTTP"); },
@@ -868,7 +870,6 @@ SPIRALCRAFT.http = (function(self) {
     
     var _request=_newXmlHttpRequest();
     _request.onerror = () => { options.onError(_request.status, _request) };
-    
     var _callbacks = [
       options.onOpen, 
       options.onSend,
@@ -897,6 +898,9 @@ SPIRALCRAFT.http = (function(self) {
     
     
     _request.onreadystatechange = function () {
+      if (self.trace)
+      { console.log(location+" readyState "+_request.readyState);
+      }
       if (options.onReadyStateChange) {
         options.onReadyStateChange(_request);
       }
@@ -911,6 +915,9 @@ SPIRALCRAFT.http = (function(self) {
     _request.open(options.method,location);
     if (options.contentType) {
       _request.setRequestHeader("Content-Type",options.contentType);
+    }
+    if (self.trace)
+    { console.log("Sending request for "+location);
     }
     _request.send(options.data);
   };
@@ -2470,7 +2477,7 @@ Sha256.hash = function(msg)
 
 /**
  * Date.parse with progressive enhancement for ISO 8601 <https://github.com/csnover/js-iso8601>
- * © 2011 Colin Snover <http://zetafleet.com>
+ * ï¿½ 2011 Colin Snover <http://zetafleet.com>
  * Released under MIT license.
  */
 (function (Date, undefined) {

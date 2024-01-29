@@ -8,9 +8,10 @@ export default function(options)
   {
     vfsPrefix: "@vfs",
     projectRoot: "..",
-    searchRoots: ['src','lib'],
+    searchRoots: ['src','srclib','lib'],
     roots: 
       { src: 'src-js'
+      , srclib: 'src-js/lib'
       , lib: 'lib-js'
       , npm: 'npm/node_modules'
       },
@@ -23,6 +24,10 @@ export default function(options)
     , ...options
     }
    :defaults;
+  
+  if (options.srcRoot)
+  { options.roots.src=options.srcRoot;
+  }
   
   let defaultMatchPrefix = options.vfsPrefix+"/";
   let idMatchPrefix = options.vfsPrefix+".";

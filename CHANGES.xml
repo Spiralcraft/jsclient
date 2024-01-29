@@ -15,6 +15,22 @@
     
       <scm:Change>
       
+        <revision>-dev37
+        </revision>
+        
+        <notes>
+          <scm:Note>Added standard root dir src-js/lib to rollup-vs search and
+            provided for customization of the path in src-js that will be searched
+            first.
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/rollup-vfs/rollup-vfs.js
+        </path>
+        
+      </scm:Change>
+      <scm:Change>
+      
         <revision>-dev36
         </revision>
         

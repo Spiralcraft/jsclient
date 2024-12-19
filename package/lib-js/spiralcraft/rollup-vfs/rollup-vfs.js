@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import path from 'node:path';
+import fs from 'node:fs';
 import slash from 'slash';
 
 export default function(options)
@@ -7,7 +7,7 @@ export default function(options)
   let defaults =
   {
     vfsPrefix: "@vfs",
-    projectRoot: "..",
+    projectRoot: path.resolve(".."),
     searchRoots: ['src','srclib','lib'],
     roots: 
       { src: 'src-js'

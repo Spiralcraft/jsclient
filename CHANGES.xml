@@ -15,6 +15,22 @@
     
       <scm:Change>
       
+        <revision>-dev38
+        </revision>
+        
+        <notes>
+          <scm:Note>Use absolute path for project root to avoid bugs in 
+                 @rollup/plugin-node-resolve
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/rollup-vfs/rollup-vfs.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev37
         </revision>
         

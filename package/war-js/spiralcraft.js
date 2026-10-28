@@ -2213,12 +2213,15 @@ SPIRALCRAFT.security = (function(self) {
 
   self.loginFormOnSubmit =  
     (function(loginForm) {
-      this.processLoginControls(
-        loginForm.login_challenge,
-        loginForm.login_username,
-        loginForm.login_clearpass,
-        loginForm.login_digestpass
-        );
+   
+      if (loginForm.login_clearpass) {
+        this.processLoginControls(
+          loginForm.login_challenge,
+          loginForm.login_username,
+          loginForm.login_clearpass,
+          loginForm.login_digestpass
+          );
+      }
       return true;
   });
   

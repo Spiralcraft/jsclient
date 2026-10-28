@@ -15,6 +15,37 @@
     
       <scm:Change>
       
+        <revision>-dev39
+        </revision>
+        
+        <notes>
+          <scm:Note>Added a package.json to rollup-vfs for local installation
+          </scm:Note>
+        </notes>
+        
+        <path>package/lib-js/spiralcraft/rollup-vfs/package.json
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
+        <revision>-dev39
+        </revision>
+        
+        <notes>
+          <scm:Note>Don't fire login form password digest if there's no
+            cleartext password field
+          </scm:Note>
+        </notes>
+        
+        <path>package/war-js/spiralcraft.js
+        </path>
+        
+      </scm:Change>
+
+      <scm:Change>
+      
         <revision>-dev38
         </revision>
         

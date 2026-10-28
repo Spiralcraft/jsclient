@@ -1,0 +1,9 @@
+{
+  "name": "@spiralcraft/rollup-vfs",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": "./rollup-vfs.js",
+  "dependencies": {
+    "slash": "^5.1.0"
+  }
+}
